@@ -14,3 +14,6 @@ Chose to use static addressing for critical systems to simplify documentation an
 3/16/2026 - 1:51 PM |
 Defined an internal lab subnet of 192.168.56.0/24.
 Reserved static IP addresses for core systems to support later Active Directory, SIEM ingestion, and troubleshooting workflows.
+
+3/16/2026 - 4:01 PM |
+Validated communication across the VirtualBox host-only network between the Windows 11 host and DC-01. Temporary ICMP echo rules were enabled on DC-01 to confirm Layer 3 connectivity, then disabled again after testing. This confirmed that host-only networking was functioning as intended and that earlier ping failures were caused by Windows Firewall behavior rather than an addressing or routing issue.
