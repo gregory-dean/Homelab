@@ -1,33 +1,53 @@
 # Incident Report Template
 
-## Summary
+## Incident Summary
+
 Brief description of the event.
 
-## Date and Time
-- Detected:
-- Investigated:
-- Resolved:
+---
+
+## Timeline
+
+| Time | Event |
+|------|------|
+| Detection | |
+| Investigation | |
+| Resolution | |
+
+---
 
 ## Affected Systems
-- System 1
-- System 2
 
-## Indicators / Evidence
-- Indicator 1
-- Indicator 2
+• System 1  
+• System 2  
 
-## Investigation Steps
-1. Step one
-2. Step two
-3. Step three
+---
+
+## Indicators
+
+• Indicator one  
+• Indicator two  
+
+---
+
+## Investigation Process
+
+Describe the investigation steps performed.
+
+---
 
 ## Findings
-Describe what happened.
+
+Explain what occurred and why.
+
+---
 
 ## Response Actions
-- Action 1
-- Action 2
+
+Actions taken to mitigate the issue.
+
+---
 
 ## Lessons Learned
-- Lesson 1
-- Lesson 2
+
+Key insights gained from the investigation.
