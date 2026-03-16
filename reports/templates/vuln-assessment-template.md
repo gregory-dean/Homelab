@@ -1,23 +1,40 @@
-# Vulnerability Assessment Template
+# Vulnerability Assessment Report
 
 ## Scope
-Systems and applications assessed.
+
+Systems assessed during the scan.
+
+---
 
 ## Methodology
-Tools and process used.
+
+Tools and techniques used during the assessment.
+
+---
 
 ## Findings Summary
-| Finding | Severity | Affected Asset | Status |
-|--------|----------|----------------|--------|
+
+| Vulnerability | Severity | Affected System | Status |
+|---------------|----------|----------------|-------|
+
+---
 
 ## Detailed Findings
-### Finding Name
-- Description:
-- Impact:
-- Evidence:
-- Remediation:
-- Retest Result:
+
+### Vulnerability Name
+
+Description
+
+Impact
+
+Evidence
+
+Remediation
+
+Retest result
+
+---
 
 ## Lessons Learned
-- Lesson 1
-- Lesson 2
+
+Observations and improvements for future assessments.
