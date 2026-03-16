@@ -18,11 +18,11 @@ This document tracks the systems deployed within the homelab environment.
 
 | System | Planned IP |
 |------|------|
-| Domain Controller | TBD |
-| Windows Client | TBD |
-| Kali Linux | TBD |
-| Ubuntu Server | TBD |
-| SIEM Platform | TBD |
+| Domain Controller | 192.168.56.10 |
+| Windows Client | 192.168.56.20 |
+| Kali Linux | 192.168.56.30 |
+| Ubuntu Server | 192.168.56.40 |
+| SIEM Platform | 192.168.56.50 |
 
 ---
 
