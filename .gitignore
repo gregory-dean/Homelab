@@ -1,0 +1,18 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# VM artifacts
+*.vdi
+*.vmdk
+*.ova
+
+# Logs
+*.log
+
+# Editor
+.vscode
+.idea
+
+# Temp files
+*.tmp
