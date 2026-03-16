@@ -1,6 +1,12 @@
 ## Phase 1 Notes
 
+3/15/2026 - 11:45 PM
 Started homelab foundation setup on Windows 11 host.
 Confirmed VirtualBox is installed and functioning.
 Created local folder structure for ISOs, screenshots, notes, and exports.
 Collected installation media for Windows Server, Windows client, Kali Linux, and Ubuntu Server.
+
+3/16/2026 - 1:43 PM
+Configured VirtualBox host-only network for internal lab communication.
+Selected 192.168.56.0/24 as the internal subnet.
+Chose to use static addressing for critical systems to simplify documentation and troubleshooting.
