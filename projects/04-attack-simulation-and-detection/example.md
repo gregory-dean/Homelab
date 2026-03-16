@@ -1,11 +1,9 @@
-SSH hardening
+Nmap reconnaissance
 
-UFW or iptables
+failed login attempts
 
-fail2ban
+suspicious PowerShell
 
-account review
+Linux sudo abuse
 
-service review
-
-logging verification
+service creation or scheduled task persistence tests
