@@ -17,3 +17,8 @@ Reserved static IP addresses for core systems to support later Active Directory,
 
 3/16/2026 - 4:01 PM |
 Validated communication across the VirtualBox host-only network between the Windows 11 host and DC-01. Temporary ICMP echo rules were enabled on DC-01 to confirm Layer 3 connectivity, then disabled again after testing. This confirmed that host-only networking was functioning as intended and that earlier ping failures were caused by Windows Firewall behavior rather than an addressing or routing issue.
+
+3/16/2026 - 4:10 PM |
+Deployed Windows Server VM as DC-01.
+Assigned NAT for outbound internet access and host-only networking for internal lab communication.
+Configured static IP 192.168.56.10 on the internal lab network.
