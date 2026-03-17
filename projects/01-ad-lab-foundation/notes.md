@@ -38,3 +38,8 @@ Configured internal lab IP addressing to support controlled connectivity testing
 Deployed Ubuntu Server as UBUNTU-01 for Linux services, testing, and future log generation.
 Configured host-only networking for isolated lab traffic and NAT for package updates.
 Assigned internal IP 192.168.56.40.
+
+3/17/2026 - 9:09 AM |
+Validated internal lab connectivity over the host-only network.
+Confirmed IP assignments for all four core systems.
+Observed that Windows firewall behavior may affect ICMP testing and should be documented in troubleshooting notes if ping results are inconsistent.
