@@ -1,10 +1,10 @@
 # Homelab Roadmap
 
 ## Phase 1 - Foundation
-- [ ] Configure VirtualBox networking
-- [ ] Deploy Windows Server VM
-- [ ] Deploy Windows client VM
-- [ ] Deploy Kali Linux VM
+- [x] Configure VirtualBox networking
+- [x] Deploy Windows Server VM
+- [x] Deploy Windows client VM
+- [x] Deploy Kali Linux VM
 - [ ] Deploy Ubuntu Server VM
 - [ ] Validate host-to-host communication
 - [ ] Document IP scheme and roles
