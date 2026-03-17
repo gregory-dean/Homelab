@@ -28,3 +28,8 @@ Deployed Windows client VM as WINCLIENT-01.
 Configured dual-network design with NAT and host-only adapters.
 Assigned static lab IP 192.168.56.20.
 Deferred domain join until Identity and Access phase.
+
+3/17/2026 - 1:25 AM |
+Deployed Kali Linux as KALI-01 for attack simulation and offensive tooling.
+Attached both NAT and host-only adapters.
+Configured internal lab IP addressing to support controlled connectivity testing.
