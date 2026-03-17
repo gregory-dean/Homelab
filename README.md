@@ -148,3 +148,20 @@ Detailed project documentation is organized throughout the repository:
 
 ## Phase 1 Highlights
 
+#### Project workspace
+![Project workspace](assets/images/phase-1-foundation/00-windows-host-project-folder.png)
+
+#### ISO collection
+![ISO collection](assets/images/phase-1-foundation/02-iso-files-collected.png)
+
+#### Host-only network configuration
+![Host-only network](assets/images/phase-1-foundation/03-virtualbox-network-manager-host-only.png)
+
+#### Lab IP addressing plan
+![IP plan](assets/images/phase-1-foundation/05-ip-scheme.png)
+
+#### Current lab state
+![All machines running](assets/images/phase-1-foundation/31-virtualbox-all-machines-running.png)
+
+For the full walkthrough, see:
+[`projects/00-lab-foundation-and-networking/README.md`](projects/00-lab-foundation-and-networking/README.md)
