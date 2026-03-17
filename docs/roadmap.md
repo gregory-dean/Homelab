@@ -5,7 +5,7 @@
 - [x] Deploy Windows Server VM
 - [x] Deploy Windows client VM
 - [x] Deploy Kali Linux VM
-- [ ] Deploy Ubuntu Server VM
+- [x] Deploy Ubuntu Server VM
 - [ ] Validate host-to-host communication
 - [ ] Document IP scheme and roles
 
