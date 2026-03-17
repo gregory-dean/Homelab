@@ -1,144 +1,150 @@
 # Cybersecurity Homelab
 
-This repository documents the design, build process, and experiments performed in my personal cybersecurity homelab.
+This repository documents the design, build process, and security experiments performed in my personal cybersecurity homelab.
 
-The purpose of this project is to create a controlled environment where I can simulate real-world enterprise security scenarios including network defense, attack simulation, vulnerability management, and threat detection.
+The goal of this project is to build a controlled enterprise-style lab for practicing system administration, networking, detection engineering, vulnerability management, and attack simulation while documenting each phase in a structured and public-facing way.
 
 The lab is continuously evolving as I expand the infrastructure and add new security tools and testing scenarios.
 
 ---
 
+## Current Status
+
+Phase 1 - Foundation is complete.
+
+Completed work includes:
+
+- VirtualBox host-only and NAT network design
+- Deployment of core virtual machines
+- Static internal IP addressing
+- Host-to-host connectivity validation
+- Initial troubleshooting documentation
+- Build notes and screenshot collection
+
+The next phase will focus on Identity and Access by configuring Active Directory, creating users and groups, and joining the Windows client to the domain.
+
+---
+
 ## Objectives
 
-• Build a realistic enterprise-style security lab  
-• Practice both offensive and defensive security techniques  
-• Simulate attack scenarios and investigate the resulting logs  
-• Develop experience with SIEM tools and detection engineering  
-• Document the process publicly for learning and knowledge sharing  
+- Build a realistic enterprise-style security lab
+- Practice both offensive and defensive security concepts
+- Simulate attack activity in a controlled environment
+- Generate and analyze logs across Windows and Linux systems
+- Document the full build process for learning and portfolio development
 
 ---
 
 ## Lab Architecture
 
-The homelab is built using a Windows 11 host machine running multiple virtual machines in VirtualBox. These systems simulate an enterprise network environment with domain services, user workstations, monitoring infrastructure, and attack systems.
+This lab is built on a Windows 11 host using Oracle VirtualBox.
 
-Current core components include:
+### Current Core Systems
 
-• Windows Server (Active Directory Domain Controller)  
-• Windows Client workstation  
-• Kali Linux attack machine  
-• Ubuntu Server for hosting vulnerable services  
-• SIEM platform for log aggregation and analysis  
+- `DC-01` - Windows Server
+- `WINCLIENT-01` - Windows client workstation
+- `KALI-01` - Kali Linux attack machine
+- `UBUNTU-01` - Ubuntu Server
+- `SIEM-01` - Planned for a future phase
 
-Additional infrastructure such as firewalls, intrusion detection systems, and vulnerability scanners will be added in later phases.
+### Internal Lab Network
 
----
+- Subnet: `192.168.56.0/24`
+- VirtualBox NAT used for outbound internet access
+- VirtualBox Host-Only Adapter used for internal lab communication
 
-## Project Roadmap
+### Planned IP Assignments
 
-### Phase 1 – Foundation
-
-Establish the base virtual environment.
-
-Tasks:
-
-• Configure VirtualBox networking  
-• Deploy core virtual machines  
-• Configure Active Directory domain  
-• Establish communication between systems  
-
----
-
-### Phase 2 – Security Monitoring
-
-Introduce log aggregation and threat detection.
-
-Tasks:
-
-• Deploy SIEM platform (Splunk / ELK)  
-• Configure log ingestion from Windows and Linux systems  
-• Create detection rules and alerts  
-• Map detections to MITRE ATT&CK techniques  
+| System | IP Address |
+|--------|-----------|
+| DC-01 | 192.168.56.10 |
+| WINCLIENT-01 | 192.168.56.20 |
+| KALI-01 | 192.168.56.30 |
+| UBUNTU-01 | 192.168.56.40 |
+| SIEM-01 | 192.168.56.50 |
 
 ---
 
-### Phase 3 – Vulnerability Management
+## Phase Roadmap
 
-Simulate enterprise vulnerability management workflows.
+### Phase 1 - Foundation
+- [x] Configure VirtualBox networking
+- [x] Deploy Windows Server VM
+- [x] Deploy Windows client VM
+- [x] Deploy Kali Linux VM
+- [x] Deploy Ubuntu Server VM
+- [x] Validate host-to-host communication
+- [x] Document IP scheme and roles
 
-Tasks:
+### Phase 2 - Identity and Access
+- [ ] Configure Active Directory
+- [ ] Create test users and groups
+- [ ] Join Windows client to domain
+- [ ] Validate domain logins
+- [ ] Document Group Policy basics
 
-• Deploy vulnerability scanner  
-• Run authenticated and unauthenticated scans  
-• Analyze findings and risk levels  
-• Perform remediation and verify fixes  
+### Phase 3 - Monitoring and Detection
+- [ ] Deploy SIEM
+- [ ] Forward Windows logs
+- [ ] Forward Linux logs
+- [ ] Validate ingestion
+- [ ] Build first detections
+- [ ] Map activity to MITRE ATT&CK
 
----
+### Phase 4 - Vulnerability Management
+- [ ] Deploy scanner
+- [ ] Run discovery scans
+- [ ] Run authenticated scans
+- [ ] Prioritize findings
+- [ ] Perform remediation
+- [ ] Retest and document fixes
 
-### Phase 4 – Attack Simulation
-
-Simulate real-world attacker behavior within the environment.
-
-Activities include:
-
-• Network reconnaissance  
-• Credential attacks  
-• Privilege escalation  
-• Lateral movement  
-• Data exfiltration  
-
-All attack activity will be correlated with detection and investigation in the monitoring platform.
+### Phase 5 - Attack Simulation
+- [ ] Perform network reconnaissance
+- [ ] Simulate brute-force activity
+- [ ] Test privilege escalation paths
+- [ ] Simulate lateral movement
+- [ ] Investigate logs and alerts
+- [ ] Write findings and lessons learned
 
 ---
 
 ## Tools and Technologies
 
-Operating Systems
+### Platforms and Operating Systems
+- Windows 11
+- Windows Server
+- Windows 10 / 11
+- Ubuntu Server
+- Kali Linux
 
-• Windows Server  
-• Windows 10 / 11  
-• Ubuntu Server  
-• Kali Linux  
+### Infrastructure
+- Oracle VirtualBox
+- Host-only networking
+- NAT networking
+- Active Directory (planned)
 
-Security Tools
-
-• Nmap  
-• Metasploit  
-• Burp Suite  
-• Splunk / Elastic Stack  
-• Wireshark  
-• Nessus / OpenVAS  
-
-Infrastructure
-
-• VirtualBox  
-• Active Directory  
-• Linux networking  
+### Security Tooling
+- Nmap
+- Wireshark
+- Splunk or Elastic
+- Nessus or OpenVAS
+- Metasploit
+- Burp Suite
 
 ---
 
 ## Documentation
 
-Detailed documentation for each stage of the homelab build can be found in the repository directories.
+Detailed project documentation is organized throughout the repository:
 
-Each section includes:
-
-• Configuration steps  
-• Screenshots  
-• Command outputs  
-• Lessons learned  
-
----
-
-## Purpose of This Project
-
-This homelab is designed as a long-term learning environment to deepen my understanding of cybersecurity concepts and real-world defensive and offensive techniques.
-
-The project also serves as a public portfolio documenting my work as I continue developing my skills in cybersecurity.
+- `docs/roadmap.md`
+- `docs/lab-architecture.md`
+- `docs/asset-inventory.md`
+- `docs/troubleshooting.md`
+- `projects/01-ad-lab-foundation/`
 
 ---
 
-## Author
+## Phase 1 Highlights
 
-Gregory Dean  
-Cybersecurity Analyst | Security Research | Homelab Development
