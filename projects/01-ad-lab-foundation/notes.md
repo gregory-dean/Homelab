@@ -33,3 +33,8 @@ Deferred domain join until Identity and Access phase.
 Deployed Kali Linux as KALI-01 for attack simulation and offensive tooling.
 Attached both NAT and host-only adapters.
 Configured internal lab IP addressing to support controlled connectivity testing.
+
+3/17/2026 - 1:40 AM |
+Deployed Ubuntu Server as UBUNTU-01 for Linux services, testing, and future log generation.
+Configured host-only networking for isolated lab traffic and NAT for package updates.
+Assigned internal IP 192.168.56.40.
