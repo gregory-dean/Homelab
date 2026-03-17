@@ -22,3 +22,9 @@ Validated communication across the VirtualBox host-only network between the Wind
 Deployed Windows Server VM as DC-01.
 Assigned NAT for outbound internet access and host-only networking for internal lab communication.
 Configured static IP 192.168.56.10 on the internal lab network.
+
+3/17/2026 - 12:47 AM |
+Deployed Windows client VM as WINCLIENT-01.
+Configured dual-network design with NAT and host-only adapters.
+Assigned static lab IP 192.168.56.20.
+Deferred domain join until Identity and Access phase.
