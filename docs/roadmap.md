@@ -6,8 +6,8 @@
 - [x] Deploy Windows client VM
 - [x] Deploy Kali Linux VM
 - [x] Deploy Ubuntu Server VM
-- [ ] Validate host-to-host communication
-- [ ] Document IP scheme and roles
+- [x] Validate host-to-host communication
+- [x] Document IP scheme and roles
 
 ## Phase 2 - Identity and Access
 - [ ] Configure Active Directory
