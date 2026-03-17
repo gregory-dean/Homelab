@@ -4,8 +4,8 @@
 This homelab is designed to simulate a small enterprise security environment using VirtualBox on a Windows 11 host.
 
 ## Core Systems
-- Windows Server - Active Directory Domain Controller
-- Windows Client - Domain-joined user workstation
+- Windows Server - Windows Server system prepared for Active Directory deployment
+- Windows Client - Windows workstation prepared for future domain join
 - Kali Linux - Attack simulation machine
 - Ubuntu Server - Linux server for services, testing, and monitoring
 - SIEM Platform - Log aggregation, alerting, and analysis
