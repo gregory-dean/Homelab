@@ -10,7 +10,7 @@ The lab is continuously evolving as I expand the infrastructure and add new secu
 
 ## Lab architecture
 
-
+![Cybersecurity Homelab Network Diagram](assets/images/homelab-diagram.png)
 ---
 
 
