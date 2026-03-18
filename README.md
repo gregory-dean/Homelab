@@ -8,6 +8,13 @@ The lab is continuously evolving as I expand the infrastructure and add new secu
 
 ---
 
+## Lab architecture
+
+![Cybersecurity Homelab Network Diagram](assets/images/homelab-network-diagram.png)
+
+---
+
+
 ## Current Status
 
 Phase 1 - Foundation is complete.
