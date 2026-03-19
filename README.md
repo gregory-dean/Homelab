@@ -8,12 +8,6 @@ The lab is continuously evolving as I expand the infrastructure and add new secu
 
 ---
 
-## Lab architecture
-
-![Cybersecurity Homelab Network Diagram](assets/images/homelab-diagram.png)
----
-
-
 ## Current Status
 
 Phase 1 - Foundation is complete.
@@ -44,6 +38,8 @@ The next phase will focus on Identity and Access by configuring Active Directory
 ## Lab Architecture
 
 This lab is built on a Windows 11 host using Oracle VirtualBox.
+
+![Cybersecurity Homelab Network Diagram](assets/images/homelab-diagram.png)
 
 ### Current Core Systems
 
