@@ -183,3 +183,213 @@ This preserves internet access while also enabling internal communication with t
 For this homelab, the important part was getting `WINCLIENT-01` installed, named correctly, and placed on the internal lab network. Domain join belongs later in the roadmap.
 
 ---
+
+## Group Policy Management View Was Correct but the Wrong Tree Level Was Selected
+
+### Symptoms
+- The expected **Workstations** OU was not visible at first in **Group Policy Management**
+- It was unclear where to create and link the workstation baseline GPO
+
+### Likely Cause
+- The view was focused at the **Domains** level rather than the expanded domain OU structure
+- The required OU was either not expanded yet or needed to be refreshed
+
+### Checks Performed
+- Reviewed the left navigation tree in **Group Policy Management**
+- Confirmed the domain `lab.lan` was present
+- Expanded the domain hierarchy further and refreshed the view
+
+### Resolution
+- Navigated into the correct domain tree level under `lab.lan`
+- Located the **Workstations** OU
+- Continued with creation and linking of the `Phase-2-Workstation-Baseline` GPO in the correct location
+
+### Notes
+This was a navigation issue rather than a Group Policy configuration failure.
+
+---
+
+## DNS Forwarder Configuration Included Unwanted Legacy IPv6 Entries
+
+### Symptoms
+- The DNS Forwarders window showed a valid forwarder along with multiple failed IPv6 entries
+- Validation displayed `OK` for the primary upstream resolver but errors for several additional entries
+
+### Likely Cause
+- Legacy placeholder IPv6 forwarders were present in the DNS server configuration
+- These were not needed for the lab and created unnecessary validation noise
+
+### Checks Performed
+- Opened **DNS Manager** on `DC-01`
+- Reviewed the **Forwarders** tab
+- Confirmed `192.168.0.1` validated successfully
+- Observed failed entries for old `fec0::` style IPv6 resolver addresses
+
+### Resolution
+- Kept `192.168.0.1` as the upstream DNS forwarder
+- Removed the invalid legacy IPv6 forwarder entries
+- Reconfirmed the forwarder list contained only the intended upstream resolver
+
+### Notes
+This preserved internal AD DNS authority on `DC-01` while still allowing external name resolution through the upstream network.
+
+---
+
+## Windows Client Could Not Join the Domain Because the Wrong Edition Was Installed
+
+### Symptoms
+- The **Domain** option could not be selected in the Computer Name / Domain Changes window
+- Windows displayed a message stating the machine could not join a domain because of the installed edition
+- The client appeared to be Windows 11, but still behaved like an unsupported edition for domain join
+
+### Likely Cause
+- `WINCLIENT-01` was installed with **Windows Home** instead of **Windows 11 Pro**
+- Windows Home does not support Active Directory domain join
+
+### Checks Performed
+- Opened the domain join dialog and confirmed the **Domain** option was unavailable
+- Reviewed the error shown by Windows during the join attempt
+- Verified the installed edition before rebuilding the client
+
+### Resolution
+- Rebuilt `WINCLIENT-01` using **Windows 11 Pro**
+- Reconfirmed the computer name as `WINCLIENT-01`
+- Reapplied the lab network settings after the rebuild
+- Returned to the domain join process only after confirming the correct edition was installed
+
+### Notes
+This issue was not caused by DNS or Active Directory itself. The domain join was blocked by the Windows edition on the client.
+
+---
+
+## Windows Client DNS Was Pointing to the Wrong Resolver for Domain Join
+
+### Symptoms
+- `WINCLIENT-01` had valid IP configuration on the lab network but domain-related name resolution was unreliable
+- Domain join preparation was incomplete even though the lab adapter had the correct static IP
+- The client still showed upstream DNS information from the NAT side instead of using the domain controller for internal lookups
+
+### Likely Cause
+- The workstation was still using an upstream resolver instead of the domain controller for Active Directory DNS
+- In a multi-adapter setup, NAT-side DNS can appear correct for internet access while still breaking AD name resolution
+
+### Checks Performed
+- Reviewed `ipconfig /all` on `WINCLIENT-01`
+- Confirmed the lab adapter was using `192.168.56.20/24`
+- Verified the VM had both a NAT adapter and a host-only lab adapter
+- Confirmed the domain controller lab IP was `192.168.56.10`
+
+### Resolution
+- Set the **LAB** adapter on `WINCLIENT-01` to use the domain controller as DNS
+- Used `192.168.56.10` as the preferred DNS server
+- Left NAT in place for internet access, but did not use it for AD DNS lookups
+- Retested domain resolution and continued with the join process
+
+### Notes
+In this lab, internal clients should use `DC-01` for DNS. Public DNS or router DNS should not be used directly on a domain-joined workstation.
+
+---
+
+## Domain Join Failed Because the Administrative Account Required a Password Change
+
+### Symptoms
+- The domain join process reached the credentials stage successfully
+- Windows returned the following error when attempting to join the domain:
+  - `The user's password must be changed before signing in.`
+
+### Likely Cause
+- The account used for the join, such as `labadmin`, was configured to require a password change at next logon
+- That requirement prevented the account from being used for the domain join operation
+
+### Checks Performed
+- Confirmed the client could reach the domain and that name resolution was functioning
+- Reviewed the exact error shown during the join attempt
+- Identified that the issue was account-related rather than network-related
+
+### Resolution
+- Opened **Active Directory Users and Computers** on `DC-01`
+- Located the `labadmin` account
+- Reset the password as needed
+- Cleared the **User must change password at next logon** requirement
+- Retried the domain join using the updated account credentials
+
+### Notes
+This was a useful distinction because the domain itself was reachable. The failure was caused by account state, not by DNS, connectivity, or the workstation build.
+
+---
+
+## Ubuntu DNS Test Initially Failed Because the Command Was Entered Incorrectly
+
+### Symptoms
+- Running `resolvectl` returned `Unknown command verb`
+- DNS validation did not run even though the hostname was entered
+
+### Likely Cause
+- The `query` verb was omitted from the command syntax
+
+### Checks Performed
+- Compared the entered command against the documented syntax
+- Confirmed the hostname itself was formatted correctly
+
+### Resolution
+- Re-ran the command with the correct syntax:
+  - `resolvectl query dc-01.lab.lan --legend=no`
+
+### Notes
+This was a simple syntax issue, but it was important to correct before deeper DNS troubleshooting.
+
+---
+
+## Ubuntu DNS Validation Initially Failed Because It Used the Wrong DNS Server
+
+### Symptoms
+- `resolvectl query dc-01.lab.lan --legend=no` returned `Name 'dc-01.lab.lan' not found`
+- Ubuntu could not resolve internal AD hostnames even though the domain controller was reachable on the lab network
+
+### Likely Cause
+- `UBUNTU-01` was using the upstream resolver `192.168.0.1` instead of the domain controller for internal lab DNS
+- The upstream resolver had no knowledge of the internal `lab.lan` zone
+
+### Checks Performed
+- Ran `resolvectl status` and confirmed the active DNS server was `192.168.0.1`
+- Confirmed this resolver was attached to the NAT side of the VM
+- Compared the failed `resolvectl` result with the expected lab DNS design
+
+### Resolution
+- Verified the domain controller lab IP was `192.168.56.10`
+- Used explicit server-targeted validation with `dig` to confirm internal DNS was working on `DC-01`
+- Confirmed successful responses for:
+  - `dig @192.168.56.10 dc-01.lab.lan`
+  - `dig @192.168.56.10 winclient-01.lab.lan`
+- Kept `UBUNTU-01` off-domain while still validating internal DNS through the domain controller
+
+### Notes
+This confirmed that Ubuntu did not need to join the domain in Phase 2. It only needed to be able to resolve internal lab systems through `DC-01`.
+
+---
+
+## Domain Controller Registered Both Lab and NAT Addresses in Internal DNS
+
+### Symptoms
+- Explicit DNS testing returned more than one A record for `dc-01.lab.lan`
+- The domain controller hostname resolved to both the internal lab IP and the NAT IP
+
+### Likely Cause
+- `DC-01` registered multiple interface addresses in AD-integrated DNS
+- Both the host-only adapter and NAT adapter were present during DNS registration
+
+### Checks Performed
+- Queried the domain controller directly with:
+  - `dig @192.168.56.10 dc-01.lab.lan`
+- Confirmed the response included:
+  - `192.168.56.10`
+  - `10.0.2.15`
+- Compared the result with the expected internal-only lab resolution path
+
+### Resolution
+- Confirmed that explicit DNS queries to `DC-01` were functioning
+- Continued using `192.168.56.10` as the intended internal lab address for DNS validation and internal communication
+- Documented the duplicate record behavior for cleanup awareness during later refinement
+
+### Notes
+This did not block Phase 2 completion, but it is worth tracking because internal clients should ideally prefer the host-only lab address for AD-related communication.
