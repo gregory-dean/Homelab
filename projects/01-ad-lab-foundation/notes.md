@@ -14,3 +14,7 @@ Promoted the server as the first domain controller for a new forest using lab.la
 3/24/2026 - 5:57 AM |
 Validated AD post-promotion state on DC-01.
 Confirmed the lab.lan zone exists in DNS, verified AD management consoles are present, and configured DC-01 to use its own internal DNS service on the LAB adapter.
+
+3/24/2026 - 6:35 AM |
+Created a basic OU structure to support identity management and future GPO targeting.
+Added Servers, Workstations, Users, Groups, and Admins OUs.
