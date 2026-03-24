@@ -38,3 +38,7 @@ Created New WINCLIENT-01 machine with Windows 11 Pro
 3/24/2026 - 9:43 AM |
 Joined WINCLIENT-01 to the lab.lan domain using the dedicated labadmin account.
 Moved the computer object into the Workstations OU to align with the Phase 2 policy structure.
+
+3/24/2026 - 9:51 AM |
+Validated domain authentication on WINCLIENT-01 using the standard greg.dean account.
+Confirmed domain identity, verified logon server resolution to DC-01, and checked that Group Policy processing was active on the domain-joined workstation.
