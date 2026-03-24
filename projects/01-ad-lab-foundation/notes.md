@@ -42,3 +42,7 @@ Moved the computer object into the Workstations OU to align with the Phase 2 pol
 3/24/2026 - 9:51 AM |
 Validated domain authentication on WINCLIENT-01 using the standard greg.dean account.
 Confirmed domain identity, verified logon server resolution to DC-01, and checked that Group Policy processing was active on the domain-joined workstation.
+
+3/24/2026 - 9:59 AM |
+Used KALI-01 only for Phase 2 validation and documentation support.
+Confirmed it remained off-domain and verified that the domain controller DNS service could resolve core lab hosts from the internal network.
