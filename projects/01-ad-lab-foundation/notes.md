@@ -30,3 +30,7 @@ Configured domain password policy, set an account lockout threshold of 10, and c
 3/24/2026 - 7:29 AM |
 Prepared WINCLIENT-01 for domain join.
 Confirmed the LAB adapter kept the static 192.168.56.20 address and changed client DNS to 192.168.56.10 so the workstation could resolve the new Active Directory domain.
+
+3/24/2026 - 7:53 AM |
+Ran into an issue regarding WINCLIENT-01 operating system.
+Created New WINCLIENT-01 machine with Windows 11 Pro
