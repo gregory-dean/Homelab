@@ -10,3 +10,7 @@ Verified hostname, confirmed static host-only IP 192.168.56.10, installed curren
 3/24/2026 - 5:34 AM |
 Installed Active Directory Domain Services and DNS on DC-01.
 Promoted the server as the first domain controller for a new forest using lab.lan with NetBIOS name LAB.
+
+3/24/2026 - 5:57 AM |
+Validated AD post-promotion state on DC-01.
+Confirmed the lab.lan zone exists in DNS, verified AD management consoles are present, and configured DC-01 to use its own internal DNS service on the LAB adapter.
