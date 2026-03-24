@@ -10,18 +10,24 @@ The lab is continuously evolving as I expand the infrastructure and add new secu
 
 ## Current Status
 
-Phase 1 - Foundation is complete.
+Phase 1 - Foundation is complete.  
+Phase 2 - Identity and Access is complete.
 
-Completed work includes:
+Completed work now includes:
 
 - VirtualBox host-only and NAT network design
 - Deployment of core virtual machines
 - Static internal IP addressing
 - Host-to-host connectivity validation
-- Initial troubleshooting documentation
+- Active Directory Domain Services installation
+- Promotion of `DC-01` to a domain controller
+- Creation of domain users, groups, and organizational units
+- Domain join of `WINCLIENT-01`
+- Domain login validation
+- Basic Group Policy documentation
 - Build notes and screenshot collection
 
-The next phase will focus on Identity and Access by configuring Active Directory, creating users and groups, and joining the Windows client to the domain.
+The next phase will focus on Monitoring and Detection by deploying a SIEM platform, onboarding Windows and Linux log sources, validating ingestion, and building initial detections.
 
 ---
 
@@ -43,8 +49,8 @@ This lab is built on a Windows 11 host using Oracle VirtualBox.
 
 ### Current Core Systems
 
-- `DC-01` - Windows Server
-- `WINCLIENT-01` - Windows client workstation
+- `DC-01` - Windows Server 2022 Domain Controller
+- `WINCLIENT-01` - Domain-joined Windows workstation
 - `KALI-01` - Kali Linux attack machine
 - `UBUNTU-01` - Ubuntu Server
 - `SIEM-01` - Planned for a future phase
@@ -79,11 +85,11 @@ This lab is built on a Windows 11 host using Oracle VirtualBox.
 - [x] Document IP scheme and roles
 
 ### Phase 2 - Identity and Access
-- [ ] Configure Active Directory
-- [ ] Create test users and groups
-- [ ] Join Windows client to domain
-- [ ] Validate domain logins
-- [ ] Document Group Policy basics
+- [x] Configure Active Directory
+- [x] Create test users and groups
+- [x] Join Windows client to domain
+- [x] Validate domain logins
+- [x] Document Group Policy basics
 
 ### Phase 3 - Monitoring and Detection
 - [ ] Deploy SIEM
@@ -115,8 +121,8 @@ This lab is built on a Windows 11 host using Oracle VirtualBox.
 
 ### Platforms and Operating Systems
 - Windows 11
-- Windows Server
-- Windows 10 / 11
+- Windows Server 2022
+- Windows 11
 - Ubuntu Server
 - Kali Linux
 
@@ -124,7 +130,9 @@ This lab is built on a Windows 11 host using Oracle VirtualBox.
 - Oracle VirtualBox
 - Host-only networking
 - NAT networking
-- Active Directory (planned)
+- Active Directory Domain Services
+- Group Policy
+- DNS
 
 ### Security Tooling
 - Nmap
@@ -144,26 +152,7 @@ Detailed project documentation is organized throughout the repository:
 - `docs/lab-architecture.md`
 - `docs/asset-inventory.md`
 - `docs/troubleshooting.md`
+- `projects/00-lab-foundation-and-networking/`
 - `projects/01-ad-lab-foundation/`
 
 ---
-
-## Phase 1 Highlights
-
-#### Project workspace
-![Project workspace](assets/images/phase-1-foundation/00-windows-host-project-folder.png)
-
-#### ISO collection
-![ISO collection](assets/images/phase-1-foundation/02-iso-files-collected.png)
-
-#### Host-only network configuration
-![Host-only network](assets/images/phase-1-foundation/03-virtualbox-network-manager-host-only.png)
-
-#### Lab IP addressing plan
-![IP plan](assets/images/phase-1-foundation/05-ip-scheme.png)
-
-#### Current lab state
-![All machines running](assets/images/phase-1-foundation/31-virtualbox-all-machines-running.png)
-
-For the full walkthrough, see:
-[`projects/00-lab-foundation-and-networking/README.md`](projects/00-lab-foundation-and-networking/README.md)
