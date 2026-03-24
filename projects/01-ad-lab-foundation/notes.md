@@ -26,3 +26,7 @@ Added a dedicated labadmin account for administrative tasks and kept privileged 
 3/24/2026 - 7:18 AM |
 Documented core Group Policy basics for the new domain.
 Configured domain password policy, set an account lockout threshold of 10, and created a minimal workstation-linked GPO placeholder for future policy growth.
+
+3/24/2026 - 7:29 AM |
+Prepared WINCLIENT-01 for domain join.
+Confirmed the LAB adapter kept the static 192.168.56.20 address and changed client DNS to 192.168.56.10 so the workstation could resolve the new Active Directory domain.
