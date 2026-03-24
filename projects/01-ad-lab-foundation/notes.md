@@ -18,3 +18,7 @@ Confirmed the lab.lan zone exists in DNS, verified AD management consoles are pr
 3/24/2026 - 6:35 AM |
 Created a basic OU structure to support identity management and future GPO targeting.
 Added Servers, Workstations, Users, Groups, and Admins OUs.
+
+3/24/2026 - 7:00 AM |
+Created initial security groups and test identities in Active Directory.
+Added a dedicated labadmin account for administrative tasks and kept privileged membership limited to only what was required for the lab.
