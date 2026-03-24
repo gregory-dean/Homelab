@@ -10,11 +10,11 @@
 - [x] Document IP scheme and roles
 
 ## Phase 2 - Identity and Access
-- [ ] Configure Active Directory
-- [ ] Create test users and groups
-- [ ] Join Windows client to domain
-- [ ] Validate domain logins
-- [ ] Document Group Policy basics
+- [x] Configure Active Directory
+- [x] Create test users and groups
+- [x] Join Windows client to domain
+- [x] Validate domain logins
+- [x] Document Group Policy basics
 
 ## Phase 3 - Monitoring and Detection
 - [ ] Deploy SIEM
