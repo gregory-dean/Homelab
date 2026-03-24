@@ -46,3 +46,7 @@ Confirmed domain identity, verified logon server resolution to DC-01, and checke
 3/24/2026 - 9:59 AM |
 Used KALI-01 only for Phase 2 validation and documentation support.
 Confirmed it remained off-domain and verified that the domain controller DNS service could resolve core lab hosts from the internal network.
+
+3/24/2026 - 11:44 PM |
+Validated the new Active Directory DNS service from UBUNTU-01 without joining the system to the domain.
+Kept the Linux server aligned with the roadmap by limiting Phase 2 work to network and name-resolution verification only.
