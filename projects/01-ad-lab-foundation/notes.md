@@ -34,3 +34,7 @@ Confirmed the LAB adapter kept the static 192.168.56.20 address and changed clie
 3/24/2026 - 7:53 AM |
 Ran into an issue regarding WINCLIENT-01 operating system.
 Created New WINCLIENT-01 machine with Windows 11 Pro
+
+3/24/2026 - 9:43 AM |
+Joined WINCLIENT-01 to the lab.lan domain using the dedicated labadmin account.
+Moved the computer object into the Workstations OU to align with the Phase 2 policy structure.
