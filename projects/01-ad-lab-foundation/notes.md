@@ -22,3 +22,7 @@ Added Servers, Workstations, Users, Groups, and Admins OUs.
 3/24/2026 - 7:00 AM |
 Created initial security groups and test identities in Active Directory.
 Added a dedicated labadmin account for administrative tasks and kept privileged membership limited to only what was required for the lab.
+
+3/24/2026 - 7:18 AM |
+Documented core Group Policy basics for the new domain.
+Configured domain password policy, set an account lockout threshold of 10, and created a minimal workstation-linked GPO placeholder for future policy growth.
