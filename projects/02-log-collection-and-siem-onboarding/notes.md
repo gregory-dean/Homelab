@@ -17,3 +17,11 @@ Confirmed successful communication with DC-01, WINCLIENT-01, UBUNTU-01, and KALI
 3/25/2026 - 8:42 PM |
 Applied initial hardening on SIEM-01 before installing Wazuh.
 Updated Ubuntu, confirmed time sync, configured UFW, and limited inbound access to the lab subnet only.
+
+3/25/2026 - 10:52 PM |
+Installed the Wazuh central components on SIEM-01.
+Deployed the Wazuh indexer, server, and dashboard on the new VM using the single-node lab design.
+
+3/25/2026 - 12:33 AM |
+Verified the Wazuh services started correctly on SIEM-01.
+Confirmed access to the dashboard over HTTPS and saved the generated admin credentials for lab use.
