@@ -13,3 +13,7 @@ Left the NAT adapter on DHCP, assigned the LAB adapter static IP 192.168.56.50/2
 3/25/2026 - 7:03 PM |
 Validated SIEM-01 network connectivity across the lab.
 Confirmed successful communication with DC-01, WINCLIENT-01, UBUNTU-01, and KALI-01 over the host-only network.
+
+3/25/2026 - 8:42 PM |
+Applied initial hardening on SIEM-01 before installing Wazuh.
+Updated Ubuntu, confirmed time sync, configured UFW, and limited inbound access to the lab subnet only.
