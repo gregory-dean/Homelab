@@ -25,3 +25,11 @@ Deployed the Wazuh indexer, server, and dashboard on the new VM using the single
 3/26/2026 - 12:33 AM |
 Verified the Wazuh services started correctly on SIEM-01.
 Confirmed access to the dashboard over HTTPS and saved the generated admin credentials for lab use.
+
+3/27/2026 - 10:12 PM |
+Installed the Wazuh agent on DC-01 and connected it to SIEM-01.
+Extended Windows telemetry by preparing the system for Sysmon, PowerShell, and Defender log forwarding.
+
+3/27/2026 - 11:13 PM |
+Installed Sysmon on DC-01 and updated the Wazuh agent configuration.
+Added Sysmon, PowerShell Operational, and Windows Defender Operational channels to improve visibility for detection use cases.
