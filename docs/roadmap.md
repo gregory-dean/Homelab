@@ -39,3 +39,11 @@
 - [ ] Simulate lateral movement
 - [ ] Investigate logs and alerts
 - [ ] Write findings and lessons learned
+
+## Phase 6 - Linux Hardening and Monitoring
+- [ ] Harden SSH configuration on UBUNTU-01
+- [ ] Configure UFW firewall rules
+- [ ] Deploy fail2ban
+- [ ] Enable auditd logging
+- [ ] Validate hardened-host logs in Wazuh
+- [ ] Document baseline vs hardened configuration
