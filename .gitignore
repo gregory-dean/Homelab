@@ -16,3 +16,11 @@ Thumbs.db
 
 # Temp files
 *.tmp
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+credentials*
+secrets/
