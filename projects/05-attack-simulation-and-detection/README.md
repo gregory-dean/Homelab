@@ -1,4 +1,4 @@
-# Project 04 – Attack Simulation and Detection
+# Project 05 – Attack Simulation and Detection
 
 **Status:** Planned — not started.
 
@@ -24,4 +24,3 @@ This project will document controlled attack simulation in the lab and the corre
 ## Related Documentation
 
 - [Roadmap](../../docs/roadmap.md) — Phase 5 checklist
-- [Incident report template](../../reports/templates/incident-report-template.md)

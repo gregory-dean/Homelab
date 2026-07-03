@@ -1,1 +1,4 @@
-Include notes as you work through labs
+# Build Notes - Project Title
+
+## YYYY-MM-DD
+- entry

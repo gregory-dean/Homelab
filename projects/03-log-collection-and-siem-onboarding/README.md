@@ -1,10 +1,10 @@
-# Project 02 – Log Collection and SIEM Onboarding
+# Project 03 – Log Collection and SIEM Onboarding
 
 ## Overview
 
 This project documents the Monitoring and Detection phase of my cybersecurity homelab build. The goal is to deploy a central SIEM platform, onboard Windows and Linux log sources, validate ingestion, and build initial detections.
 
-This phase builds on the networking foundation from Project 00 and the Active Directory environment from Project 01.
+This phase builds on the networking foundation from Project 01 and the Active Directory environment from Project 02.
 
 **Status:** In progress — SIEM deployed, DC-01 agent onboarded with Sysmon. Linux log onboarding and detection work remain.
 
@@ -89,7 +89,7 @@ See [docs/troubleshooting.md](../../docs/troubleshooting.md) for issues encounte
 
 ## Screenshots
 
-Screenshots for this phase will be added to `assets/images/phase-3-monitoring-and-detection/` as work progresses.
+Screenshots for this phase are stored in [images/](images/) as work progresses. See [images/README.md](images/README.md) for the checklist.
 
 ---
 

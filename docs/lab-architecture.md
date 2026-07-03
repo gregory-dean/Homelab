@@ -1,16 +1,29 @@
 # Lab Architecture
 
 ## Overview
+
 This homelab is designed to simulate a small enterprise security environment using VirtualBox on a Windows 11 host.
 
-## Core Systems
-- DC-01 - Windows Server 2022 domain controller running Active Directory Domain Services and DNS
-- WINCLIENT-01 - Windows 11 Pro domain-joined workstation used for user authentication and policy validation
-- KALI-01 - Kali Linux attack simulation machine kept off-domain for future offensive testing
-- UBUNTU-01 - Ubuntu Server kept off-domain for future Linux administration, monitoring, and log generation
-- SIEM-01 - Ubuntu Server running Wazuh for log aggregation, detection, and alerting
+![Cybersecurity Homelab Network Diagram](images/homelab-diagram.png)
+
+## System Roles
+
+- **DC-01** — Domain controller providing Active Directory authentication and internal DNS for the lab domain
+- **WINCLIENT-01** — Domain-joined workstation for user authentication and Group Policy validation
+- **KALI-01** — Off-domain attack simulation machine for offensive security testing
+- **UBUNTU-01** — Off-domain Linux server for administration, services, and log generation
+- **SIEM-01** — Off-domain monitoring platform running Wazuh for log aggregation, detection, and alerting
+
+For operating system versions, IP addresses, and deployment notes, see [asset-inventory.md](asset-inventory.md).
+
+## Network Design
+
+- Internal subnet: `192.168.56.0/24`
+- VirtualBox Host-Only Adapter for internal lab communication
+- VirtualBox NAT per VM for outbound internet access
 
 ## Goals
+
 - Simulate enterprise user and administrator activity
 - Generate realistic Windows and Linux logs
 - Practice vulnerability management workflows
@@ -18,6 +31,7 @@ This homelab is designed to simulate a small enterprise security environment usi
 - Develop detection and investigation skills
 
 ## Planned Expansion
+
 - Firewall or segmentation layer
 - IDS/IPS tooling
 - Additional Linux services

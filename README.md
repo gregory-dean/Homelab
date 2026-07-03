@@ -10,27 +10,16 @@ The lab is continuously evolving as I expand the infrastructure and add new secu
 
 ## Current Status
 
-Phase 1 - Foundation is complete.  
-Phase 2 - Identity and Access is complete.  
-Phase 3 - Monitoring and Detection is in progress.
+| Phase | Project | Status |
+|-------|---------|--------|
+| 1 | [Lab Foundation and Networking](projects/01-lab-foundation-and-networking/) | Complete |
+| 2 | [AD Identity and Access](projects/02-ad-identity-and-access/) | Complete |
+| 3 | [Log Collection and SIEM Onboarding](projects/03-log-collection-and-siem-onboarding/) | In progress |
+| 4 | [Vulnerability Management Workflow](projects/04-vulnerability-management-workflow/) | Planned |
+| 5 | [Attack Simulation and Detection](projects/05-attack-simulation-and-detection/) | Planned |
+| 6 | [Linux Hardening and Monitoring](projects/06-linux-hardening-and-monitoring/) | Planned |
 
-Completed work includes:
-
-- VirtualBox host-only and NAT network design
-- Deployment of core virtual machines
-- Static internal IP addressing
-- Host-to-host connectivity validation
-- Active Directory Domain Services installation
-- Promotion of `DC-01` to a domain controller
-- Creation of domain users, groups, and organizational units
-- Domain join of `WINCLIENT-01`
-- Domain login validation
-- Basic Group Policy documentation
-- Wazuh SIEM deployment on `SIEM-01`
-- Wazuh agent installation on `DC-01` with Sysmon log forwarding
-- Build notes and screenshot collection
-
-Remaining Phase 3 work includes Linux log onboarding, ingestion validation, and initial detections.
+See [docs/roadmap.md](docs/roadmap.md) for the full phase checklist.
 
 ---
 
@@ -48,15 +37,7 @@ Remaining Phase 3 work includes Linux log onboarding, ingestion validation, and 
 
 This lab is built on a Windows 11 host using Oracle VirtualBox.
 
-![Cybersecurity Homelab Network Diagram](assets/images/homelab-diagram.png)
-
-### Current Core Systems
-
-- `DC-01` - Windows Server 2022 Domain Controller
-- `WINCLIENT-01` - Domain-joined Windows workstation
-- `KALI-01` - Kali Linux attack machine
-- `UBUNTU-01` - Ubuntu Server
-- `SIEM-01` - Wazuh monitoring platform
+![Cybersecurity Homelab Network Diagram](docs/images/homelab-diagram.png)
 
 ### Internal Lab Network
 
@@ -64,15 +45,8 @@ This lab is built on a Windows 11 host using Oracle VirtualBox.
 - VirtualBox NAT used for outbound internet access
 - VirtualBox Host-Only Adapter used for internal lab communication
 
+See [docs/lab-architecture.md](docs/lab-architecture.md) for system roles and design goals.  
 See [docs/asset-inventory.md](docs/asset-inventory.md) for the full asset table and IP addressing plan.
-
----
-
-## Phase Roadmap
-
-Phases 1–2 are complete. Phase 3 is in progress (SIEM deployed, DC-01 onboarded with Sysmon).
-
-See [docs/roadmap.md](docs/roadmap.md) for the full checklist.
 
 ---
 
