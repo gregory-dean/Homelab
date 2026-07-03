@@ -1,4 +1,4 @@
-# Project 05 – Linux Hardening and Monitoring
+# Project 06 – Linux Hardening and Monitoring
 
 **Status:** Planned — not started.
 
@@ -22,4 +22,4 @@ This project will document Linux security hardening and monitoring configuration
 ## Related Documentation
 
 - [Roadmap](../../docs/roadmap.md)
-- [Project 02 – SIEM Onboarding](../02-log-collection-and-siem-onboarding/)
+- [Project 03 – SIEM Onboarding](../03-log-collection-and-siem-onboarding/)
