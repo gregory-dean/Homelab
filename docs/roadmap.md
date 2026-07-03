@@ -17,8 +17,8 @@
 - [x] Document Group Policy basics
 
 ## Phase 3 - Monitoring and Detection
-- [ ] Deploy SIEM
-- [ ] Forward Windows logs
+- [x] Deploy SIEM
+- [x] Forward Windows logs
 - [ ] Forward Linux logs
 - [ ] Validate ingestion
 - [ ] Build first detections

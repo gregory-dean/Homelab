@@ -8,7 +8,7 @@ This homelab is designed to simulate a small enterprise security environment usi
 - WINCLIENT-01 - Windows 11 Pro domain-joined workstation used for user authentication and policy validation
 - KALI-01 - Kali Linux attack simulation machine kept off-domain for future offensive testing
 - UBUNTU-01 - Ubuntu Server kept off-domain for future Linux administration, monitoring, and log generation
-- SIEM-01 - Planned monitoring platform for future log aggregation, detection, and alerting
+- SIEM-01 - Ubuntu Server running Wazuh for log aggregation, detection, and alerting
 
 ## Goals
 - Simulate enterprise user and administrator activity

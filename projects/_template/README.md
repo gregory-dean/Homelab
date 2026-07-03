@@ -30,7 +30,7 @@ Describe how success was verified.
 Describe any problems encountered and how they were fixed.
 
 ## Screenshots
-Add screenshots in the `screenshots/` folder and reference them here.
+Add screenshots to `../../assets/images/phase-N-<topic>/` and reference them here.
 
 ## Skills Demonstrated
 - Skill 1

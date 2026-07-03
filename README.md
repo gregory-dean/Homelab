@@ -11,9 +11,10 @@ The lab is continuously evolving as I expand the infrastructure and add new secu
 ## Current Status
 
 Phase 1 - Foundation is complete.  
-Phase 2 - Identity and Access is complete.
+Phase 2 - Identity and Access is complete.  
+Phase 3 - Monitoring and Detection is in progress.
 
-Completed work now includes:
+Completed work includes:
 
 - VirtualBox host-only and NAT network design
 - Deployment of core virtual machines
@@ -25,9 +26,11 @@ Completed work now includes:
 - Domain join of `WINCLIENT-01`
 - Domain login validation
 - Basic Group Policy documentation
+- Wazuh SIEM deployment on `SIEM-01`
+- Wazuh agent installation on `DC-01` with Sysmon log forwarding
 - Build notes and screenshot collection
 
-The next phase will focus on Monitoring and Detection by deploying a SIEM platform, onboarding Windows and Linux log sources, validating ingestion, and building initial detections.
+Remaining Phase 3 work includes Linux log onboarding, ingestion validation, and initial detections.
 
 ---
 
@@ -53,7 +56,7 @@ This lab is built on a Windows 11 host using Oracle VirtualBox.
 - `WINCLIENT-01` - Domain-joined Windows workstation
 - `KALI-01` - Kali Linux attack machine
 - `UBUNTU-01` - Ubuntu Server
-- `SIEM-01` - Planned for a future phase
+- `SIEM-01` - Wazuh monitoring platform
 
 ### Internal Lab Network
 
@@ -61,59 +64,15 @@ This lab is built on a Windows 11 host using Oracle VirtualBox.
 - VirtualBox NAT used for outbound internet access
 - VirtualBox Host-Only Adapter used for internal lab communication
 
-### Planned IP Assignments
-
-| System | IP Address |
-|--------|-----------|
-| DC-01 | 192.168.56.10 |
-| WINCLIENT-01 | 192.168.56.20 |
-| KALI-01 | 192.168.56.30 |
-| UBUNTU-01 | 192.168.56.40 |
-| SIEM-01 | 192.168.56.50 |
+See [docs/asset-inventory.md](docs/asset-inventory.md) for the full asset table and IP addressing plan.
 
 ---
 
 ## Phase Roadmap
 
-### Phase 1 - Foundation
-- [x] Configure VirtualBox networking
-- [x] Deploy Windows Server VM
-- [x] Deploy Windows client VM
-- [x] Deploy Kali Linux VM
-- [x] Deploy Ubuntu Server VM
-- [x] Validate host-to-host communication
-- [x] Document IP scheme and roles
+Phases 1–2 are complete. Phase 3 is in progress (SIEM deployed, DC-01 onboarded with Sysmon).
 
-### Phase 2 - Identity and Access
-- [x] Configure Active Directory
-- [x] Create test users and groups
-- [x] Join Windows client to domain
-- [x] Validate domain logins
-- [x] Document Group Policy basics
-
-### Phase 3 - Monitoring and Detection
-- [ ] Deploy SIEM
-- [ ] Forward Windows logs
-- [ ] Forward Linux logs
-- [ ] Validate ingestion
-- [ ] Build first detections
-- [ ] Map activity to MITRE ATT&CK
-
-### Phase 4 - Vulnerability Management
-- [ ] Deploy scanner
-- [ ] Run discovery scans
-- [ ] Run authenticated scans
-- [ ] Prioritize findings
-- [ ] Perform remediation
-- [ ] Retest and document fixes
-
-### Phase 5 - Attack Simulation
-- [ ] Perform network reconnaissance
-- [ ] Simulate brute-force activity
-- [ ] Test privilege escalation paths
-- [ ] Simulate lateral movement
-- [ ] Investigate logs and alerts
-- [ ] Write findings and lessons learned
+See [docs/roadmap.md](docs/roadmap.md) for the full checklist.
 
 ---
 
@@ -122,7 +81,6 @@ This lab is built on a Windows 11 host using Oracle VirtualBox.
 ### Platforms and Operating Systems
 - Windows 11
 - Windows Server 2022
-- Windows 11
 - Ubuntu Server
 - Kali Linux
 
@@ -135,9 +93,10 @@ This lab is built on a Windows 11 host using Oracle VirtualBox.
 - DNS
 
 ### Security Tooling
+- Wazuh
+- Sysmon
 - Nmap
 - Wireshark
-- Splunk or Elastic
 - Nessus or OpenVAS
 - Metasploit
 - Burp Suite
@@ -146,13 +105,4 @@ This lab is built on a Windows 11 host using Oracle VirtualBox.
 
 ## Documentation
 
-Detailed project documentation is organized throughout the repository:
-
-- `docs/roadmap.md`
-- `docs/lab-architecture.md`
-- `docs/asset-inventory.md`
-- `docs/troubleshooting.md`
-- `projects/00-lab-foundation-and-networking/`
-- `projects/01-ad-lab-foundation/`
-
----
+See [docs/README.md](docs/README.md) for the full documentation index.

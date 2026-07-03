@@ -2,6 +2,8 @@
 
 This document tracks issues actually encountered while building the cybersecurity homelab in VirtualBox on a Windows 11 host. It is intended to document real configuration problems, how they were identified, and how they were resolved during the build process.
 
+**Related projects:** [00 – Lab Foundation](../projects/00-lab-foundation-and-networking/) · [01 – AD Lab Foundation](../projects/01-ad-lab-foundation/) · [02 – Log Collection and SIEM](../projects/02-log-collection-and-siem-onboarding/)
+
 ---
 
 ## VirtualBox VM Could Not Communicate with Other Lab Systems
