@@ -17,6 +17,10 @@ Thumbs.db
 # Temp files
 *.tmp
 
+# Python
+__pycache__/
+*.pyc
+
 # Secrets
 .env
 .env.*
@@ -24,3 +28,6 @@ Thumbs.db
 *.key
 credentials*
 secrets/
+
+/local/
+/raw-images/
