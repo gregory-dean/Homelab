@@ -30,7 +30,7 @@ Star names stay on the metal. Role names stay on the guests.
 
 ## Docs
 
-Reference. Addresses, hardware, and what is actually running.
+Reference. Addresses, and hardware.
 
 - [Architecture](docs/architecture.md)
 - [Hardware](docs/hardware.md)
@@ -39,7 +39,7 @@ Reference. Addresses, hardware, and what is actually running.
 
 ## Guides
 
-How I built each piece. Written so you can repeat it.
+How I built each piece.
 
 - [Rack](guides/rack.md)
 - [Firewall](guides/firewall.md)
@@ -49,4 +49,3 @@ How I built each piece. Written so you can repeat it.
 - [Command center](guides/command-center.md)
 - [Lab guests](guides/lab-guests.md)
 
-Editable diagrams live in [`images/diagrams/architecture.drawio`](images/diagrams/architecture.drawio). Open that file in [diagrams.net](https://app.diagrams.net). The Traffic page is the wall-and-gate view of how packets move.
