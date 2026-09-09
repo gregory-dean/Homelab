@@ -1,14 +1,14 @@
 # Homelab
 
-I run a 10 inch rack on the desk. OPNsense sits at the edge. Two Proxmox nodes hold the guests. This Windows desktop is the command center.
+This is a full guide with detailed documentation of the 10 inch homelab I've built. Currently my stack is OPNSense for the firewalls and Proxmox nodes for hosting my VMs.
 
-I use it for security work and for things I want to host myself.
+I use this for all cybersecurity related projects and some personal projects like self hosting or game servers. 
 
 ![Network](images/diagrams/network.jpg)
 
 ![Front](images/rack/01-rack-front.jpg)
 
-The switch in this cabinet cannot do VLANs. Isolation is a VXLAN overlay between the two Proxmox nodes, plus a second OPNsense install that only routes the lab. Sirius never sees traffic between two devices on the same switch. That is why both firewalls exist.
+The switch in this cabinet cannot do VLANs. Isolation is a VXLAN overlay between the two Proxmox nodes, plus a second OPNsense install that only routes the lab. Sirius does not see traffic between two devices on the same switch. That is why I use these firewalls.
 
 ## Hosts
 
@@ -26,8 +26,6 @@ The switch in this cabinet cannot do VLANs. Isolation is a VXLAN overlay between
 | ubuntu-01 | VM on Vega | Ubuntu Server, off domain | `10.30.10.40` |
 | kali-01 | VM on Vega | Kali, off domain | `10.30.30.30` |
 
-Star names stay on the metal. Role names stay on the guests.
-
 ## Docs
 
 Reference. Addresses, and hardware.
@@ -39,7 +37,7 @@ Reference. Addresses, and hardware.
 
 ## Guides
 
-How I built each piece.
+How I built this.
 
 - [Rack](guides/rack.md)
 - [Firewall](guides/firewall.md)
