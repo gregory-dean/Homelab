@@ -21,6 +21,9 @@ Thumbs.db
 __pycache__/
 *.pyc
 
+# Diagram sources and generator
+/diagrams/
+
 # Secrets
 .env
 .env.*
