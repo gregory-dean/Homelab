@@ -1,14 +1,17 @@
 # Network
 
-Addresses, DNS, NIC map, and the patch panel.
+This is the address book for the lab: Core and lab addresses, DNS, the NIC assignments on Sirius, routes and NAT, firewall rule order, and the patch map.
 
-![Segmentation](../images/diagrams/architecture-network.jpg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/diagrams/dns-dark.png">
+  <img alt="DNS flow" src="../images/diagrams/dns-light.png">
+</picture>
 
-The wall-and-gate view of the same path is on [architecture](architecture.md).
+The segmentation view of the same network is in [architecture](architecture.md).
 
 ## Core (`10.10.10.0/24`)
 
-Physical LAN on the LS108GP. Domain `home.gregory-dean.com`. Sirius is DHCP (Dnsmasq) and DNS (Unbound).
+Core is the physical LAN on the LS108GP. Its domain is `home.gregory-dean.com`, and Sirius provides both DHCP through Dnsmasq and DNS through Unbound.
 
 | Address | Name | Device |
 | ------- | ---- | ------ |
@@ -17,14 +20,14 @@ Physical LAN on the LS108GP. Domain `home.gregory-dean.com`. Sirius is DHCP (Dns
 | `10.10.10.3` | gw-01 | OPNsense VM on Polaris |
 | `10.10.10.11` | polaris | M720q i5-9500T, Proxmox |
 | `10.10.10.12` | vega | M715q Ryzen 3, Proxmox |
-| `10.10.10.154` | sol | Ryzen 7 desktop, DHCP reservation on Sirius |
 | `10.10.10.100` to `10.10.10.199` | DHCP pool | Phones, laptops, anything else on Core |
+| `10.10.10.154` | sol | Ryzen 7 desktop, DHCP reservation on Sirius |
 
-DHCP options: gateway `10.10.10.1`, DNS `10.10.10.1`, NTP `10.10.10.1`, domain `home.gregory-dean.com`. Sol stays on DHCP. Sirius holds a Dnsmasq reservation so Sol always gets `10.10.10.154`. Unbound listens on 53. Dnsmasq listens on 53053 and registers lease names. Unbound forwards `home.gregory-dean.com` to it.
+DHCP hands out `10.10.10.1` as the gateway, DNS server, and NTP server, with `home.gregory-dean.com` as the domain. Sol stays on DHCP, and a Dnsmasq reservation on Sirius makes sure it always gets `10.10.10.154`. Unbound listens on port 53. Dnsmasq listens on 53053 and registers lease names, and Unbound forwards the `home.gregory-dean.com` zone to it.
 
 ## Lab networks
 
-Virtual. Routed by gw-01. Domain `lab.gregory-dean.com` on `dc-01`.
+The lab networks are virtual and routed by gw-01. The domain is `lab.gregory-dean.com`, served by `dc-01`.
 
 | Address | Name | VNet | Notes |
 | ------- | ---- | ---- | ----- |
@@ -37,15 +40,13 @@ Virtual. Routed by gw-01. Domain `lab.gregory-dean.com` on `dc-01`.
 | `10.30.30.1` | gw-01 | labatk | Attack gateway |
 | `10.30.30.30` | kali-01 | labatk | Kali, off domain |
 
-DHCP on each lab net is `x.100` to `x.199` from gw-01.
+gw-01 runs DHCP on each lab network with a pool from `.100` to `.199`.
 
-Workstations use `10.30.10.10` for DNS. Kali uses `10.30.30.1`.
-
-Sirius Unbound forwards `lab.gregory-dean.com` to `10.30.10.10`. gw-01 Unbound does the same. gw-01 DHCP option 6 on LABSRV and LABEP is `10.30.10.10`. LABATK stays on `10.30.30.1`.
+Workstations use `10.30.10.10` for DNS, and Kali uses `10.30.30.1`. Unbound on both Sirius and gw-01 forwards `lab.gregory-dean.com` to `10.30.10.10`. DHCP option 6 on LABSRV and LABEP also points at `10.30.10.10`, while LABATK stays on `10.30.30.1`.
 
 ## Sirius NIC assignment
 
-10Gtek Intel I350, driver `igb`, plus the onboard NIC.
+Sirius has the 10Gtek Intel I350, which uses the `igb` driver, plus the onboard NIC.
 
 | Port | Role |
 | ---- | ---- |
@@ -54,7 +55,7 @@ Sirius Unbound forwards `lab.gregory-dean.com` to `10.30.10.10`. gw-01 Unbound d
 | I350 ports 3 and 4 | unused |
 | Onboard | unused |
 
-I confirm names (`igb0` and so on) at the console by plugging one cable at a time. The bracket is labeled to match.
+I confirmed which `igb` device was which at the console by plugging in one cable at a time, and the bracket is labeled to match.
 
 ## Routes and NAT
 
@@ -63,13 +64,13 @@ On Sirius:
 - `10.30.10.0/24` via `10.10.10.3`
 - `10.30.20.0/24` via `10.10.10.3`
 - `10.30.30.0/24` via `10.10.10.3`
-- Hybrid source NAT for `10.10.10.0/24` (automatic) and `10.30.0.0/16` (manual) to WAN
+- Hybrid source NAT for `10.10.10.0/24` (automatic) and `10.30.0.0/16` (manual) out WAN
 
-On gw-01: no outbound NAT. Default route `10.10.10.1`.
+gw-01 does no outbound NAT. Its default route is `10.10.10.1`.
 
 ## Firewall intent
 
-Sirius LAN, first match. Default “allow LAN to any” is disabled. Access to the GUI and SSH is the Sol rule, not a listen-on-LAN bind.
+These are the Sirius LAN rules in order, and the first match wins. The default "allow LAN to any" rule is disabled. Access to the GUI and SSH comes from the Sol rule rather than from binding the listener to LAN, and anti lockout stays on. Anything that doesn't match rules 1 through 9 is denied.
 
 1. Core to Sirius TCP/UDP 53 (Unbound)
 2. Core to Sirius UDP 123 (NTP)
@@ -80,20 +81,19 @@ Sirius LAN, first match. Default “allow LAN to any” is disabled. Access to t
 7. Sol to `10.30.0.0/16` any
 8. Core to any destination not `10.10.10.0/24` and not `10.30.0.0/16` (house internet)
 9. Lab prefixes to any destination not Core (lab internet)
-10. Deny the rest inbound to Sirius
 
-gw-01 is the zone break:
+gw-01 is where the lab is separated from Core:
 
 - Sol may enter the lab
 - Other Core clients may not
-- Sirius ICMP to gw-01 for route monitoring
-- Sirius DNS (TCP/UDP 53) to `dc-01` so Unbound can answer lab names on Core
-- Lab nets may not initiate to Core
-- `labatk` may reach `labsrv` and `labep` (that is the point)
+- Sirius may ping gw-01 for route monitoring
+- Sirius may reach `dc-01` on TCP/UDP 53 so Unbound can answer lab names on Core
+- Lab networks may not initiate to Core
+- `labatk` may reach `labsrv` and `labep`, since attacking those is the whole point of the range
 
 ## Patch panel and switch
 
-Rear of the panel is permanent. Front cords are 0.5 ft Cat6A to the switch. Rear runs are 2 ft Cat6A.
+The rear of the panel is wired once and left alone. Front cords are 0.5 ft Cat6A to the switch, and the rear runs to each device are 2 ft Cat6A.
 
 | Panel | Switch | Device |
 | ----- | ------ | ------ |
@@ -104,8 +104,8 @@ Rear of the panel is permanent. Front cords are 0.5 ft Cat6A to the switch. Rear
 | 5 | 5 | Lyra |
 | 6 to 12 | 6 to 8 | open |
 
-LS108GP: Extend mode off. PoE Auto Recovery off. Lyra uses its own power brick, so PoE is unused.
+On the LS108GP, Extend mode and PoE Auto Recovery are both off. Lyra runs from its own power brick, so PoE goes unused.
 
 ## VXLAN
 
-Zone id `lab` on both Proxmox nodes. Peers `10.10.10.11` and `10.10.10.12`. MTU 1450. VNets `labsrv`, `labep`, `labatk`. I do not create extra Linux bridges for the lab. A bridge with no NIC would be local to one node.
+The zone is `lab` on both Proxmox nodes, with peers `10.10.10.11` and `10.10.10.12` and an MTU of 1450. The vnets are `labsrv`, `labep`, and `labatk`. I don't create extra Linux bridges for the lab, because a bridge with no physical NIC only exists on one node.

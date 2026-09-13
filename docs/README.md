@@ -1,8 +1,7 @@
 # Docs
 
-These four pages are the map. The [guides](../guides/README.md) are the steps.
+These pages describe the lab as it runs today. If you want to build something like it, start with the [guides](../guides/README.md) instead.
 
-- [Architecture](architecture.md) why the path looks like this
-- [Hardware](hardware.md) what I bought and what I already had
-- [Network](network.md) addresses, NICs, patch map, rule order
-- [Inventory](inventory.md) what is running today
+- [Architecture](architecture.md) covers why the network is shaped the way it is.
+- [Hardware](hardware.md) lists what I bought, what each box does, and the printed mounts.
+- [Network](network.md) has the addresses, NIC assignments, patch map, and firewall rule order.

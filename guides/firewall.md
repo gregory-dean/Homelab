@@ -1,138 +1,130 @@
 # Firewall
 
-There are two OPNsense installs. Only Sirius is a box in the rack. Build Sirius first. Build gw-01 after both Proxmox nodes are clustered and the VXLAN vnets exist. That part of [hypervisor](hypervisor.md) has to come first.
+The hostnames and addresses on this page are examples. Core is `10.10.10.0/24`, the lab prefixes are `10.30.10.0/24`, `10.30.20.0/24`, and `10.30.30.0/24`, and the two firewalls are `edge` and `lab-gw`. My real addresses are in [network](../docs/network.md).
 
-As-built on OPNsense 26.7. 26.7 uses Dnsmasq for DHCP, Source NAT instead of the old Outbound page, and Firewall → Rules as the MVC editor. ISC DHCP is end-of-life. Do not enable Kea.
+There are two OPNsense installs in this design. The edge runs on real hardware and comes first, since nothing else has internet or DHCP until it's up. The lab router is a VM, and it can't exist until the hypervisors are clustered and the VXLAN vnets are built, so the first half of [hypervisor](hypervisor.md) has to happen before the second half of this page.
 
-I export `config.xml` after every change session (**System → Configuration → Backups**).
+Everything here matches OPNsense 26.7. Dnsmasq handles DHCP, Source NAT replaced the old Outbound page, and Firewall → Rules is the newer MVC editor. ISC DHCP is end of life, and I don't enable Kea.
 
-## Sirius (M720q i5-8400T)
+Get in the habit of exporting `config.xml` after every session of changes. It's under **System → Configuration → Backups**, and it's the fastest way back if you lock yourself out.
 
-Physical edge. WAN from the ISP modem on I350 port 1. LAN `10.10.10.1` on I350 port 2 into the switch.
+## Edge firewall
+
+The edge is the physical box. WAN comes from the ISP modem and LAN goes into the switch as `10.10.10.1`.
 
 ### USB and install
 
-1. On Sol, download the current OPNsense amd64 **vga** image (`OPNsense-*-vga-amd64.img.bz2`) from [opnsense.org/download](https://opnsense.org/download/). A DVD ISO in Rufus DD mode also works. vga is the project's USB path.
-2. Verify SHA256 of the `.bz2` against the current 26.7 release notes. Extract with 7-Zip before writing.
-3. Write the USB with Rufus in **DD Image** mode. Not ISO mode.
-4. Sirius: F12 boot menu, USB, UEFI. Skip the config importer. Log in as `installer` / `opnsense`.
-5. Install (UFS) to `nvd0` (256 GB NVMe), not `da0` (the stick). Recommended swap (8 GB). UFS is the simple choice on a single disk firewall.
-6. Set a strong root password. Reboot and remove the USB.
+1. On the admin PC, download the current OPNsense amd64 **vga** image (`OPNsense-*-vga-amd64.img.bz2`) from [opnsense.org/download](https://opnsense.org/download/). The DVD ISO written with Rufus in DD mode also works, but vga is the image the project intends for USB.
+2. Check the SHA256 of the `.bz2` against the 26.7 release notes, then extract it with 7-Zip.
+3. Write the USB with Rufus in **DD Image** mode, not ISO mode.
+4. Boot the edge box from the USB in UEFI mode. Skip the config importer and log in as `installer` with the password `opnsense`.
+5. Install to the internal disk with UFS, not to the USB stick. Take the recommended swap (8 GB). UFS is the simple choice on a single disk firewall.
+6. Set a strong root password, reboot, and pull the USB.
 
 ### Assign interfaces
 
-Do this at the console with cables as the guide. `igb` numbers are not guaranteed to match bracket order.
+Do this at the console and let the cables tell you which NIC is which. Driver names like `igb0` and `em0` aren't guaranteed to match the order of the ports on the bracket, and guessing wrong here costs you a lot of confusion later.
 
-1. Unplug every ethernet cable from Sirius.
-2. Plug the modem into I350 port 1. Watch the console link status. Note which `igb` device came up. That is WAN.
-3. Move that cable to I350 port 2 and note the device. That is LAN.
-4. Menu 1: no VLANs. Assign only WAN and LAN. Leave I350 ports 3 and 4 and the onboard NIC unassigned.
-5. Menu 2: LAN `10.10.10.1/24`, IPv6 no, DHCP `10.10.10.100` to `10.10.10.199`. Keep the GUI on HTTPS.
-6. Plug modem into port 1, switch into port 2. Connect Sol to the switch. Sol should pull a `10.10.10.1xx` address. Only one DHCP server on Core. The modem and Lyra must not serve DHCP.
-7. Label the I350 bracket: port 1 WAN, port 2 LAN.
+1. Unplug every Ethernet cable from the box.
+2. Plug the modem into the port you want to be WAN and watch the console link status. Whichever device comes up is WAN.
+3. Move that cable to the port you want to be LAN and note the device. That's LAN.
+4. In menu 1, skip VLANs unless your switch is actually doing them. Assign only WAN and LAN and leave any spare NICs unassigned.
+5. In menu 2, set LAN to `10.10.10.1/24`, say no to IPv6, and enable DHCP from `10.10.10.100` to `10.10.10.199`. Keep the GUI on HTTPS.
+6. Plug the modem into WAN and the switch into LAN, then connect the admin PC to the switch. It should pull an address in the `10.10.10.1xx` range.
 
-GUI is `https://10.10.10.1`, user `root`. Accept the self-signed cert for this host only.
+Only one device should be serving DHCP on Core. The modem and the access point both have to stay out of that job.
 
-![Sirius dashboard](../images/sirius/01-dashboard.jpg)
+The GUI is at `https://10.10.10.1` as `root`. Accept the self signed certificate for this host only.
+
+![My edge dashboard](../images/sirius/01-dashboard.jpg)
 
 ### Firmware and general
 
-**System → Firmware → Status → Check for updates** before a long config session. Reboot. Confirm the dashboard shows 26.7.2 or later.
+Go to **System → Firmware → Status** and check for updates before you start a long configuration session, then reboot.
 
-**System → Settings → General**
+Under **System → Settings → General**:
 
-- Hostname `sirius`
-- Domain `home.gregory-dean.com`
-- DNS servers left empty. Unbound handles resolution
-- Allow DNS server list to be overridden by DHCP/PPP on WAN: **off**
-- Do not use the local DNS service as a nameserver: **off**
-- Timezone `America/Boise`
+- Hostname `edge`, or whatever you picked
+- A domain for Core, for example `home.example.com`
+- DNS servers left empty, since Unbound handles resolution
+- Allow DNS server list to be overridden by DHCP/PPP on WAN: off
+- Do not use the local DNS service as a nameserver: off
+- Your timezone
 - Prefer IPv4 over IPv6: on
 
 ### WAN and LAN
 
-WAN:
+On WAN, use IPv4 via DHCP with IPv6 set to none. Turn on both block bogon networks and block private networks, and don't run a DHCP server on it. If WAN comes up with an RFC1918 address, the modem is still doing NAT and needs to go into bridge mode. And don't publish your public WAN address anywhere, including a repo like this one.
 
-- IPv4 via DHCP
-- If WAN comes up RFC1918, the modem is still NATing. Put the modem in bridge mode. Do not publish the public WAN address.
-- IPv6: none
-- Block bogon networks: on
-- Block private networks: on
-- No DHCP server on WAN
-
-LAN:
-
-- IPv4 static `10.10.10.1/24`
-- IPv6 none
-- Block private / bogon: off
+On LAN, set IPv4 static `10.10.10.1/24`, IPv6 none, and leave both block private and block bogon off.
 
 ### DHCP (Dnsmasq)
 
-**Services → Dnsmasq DNS & DHCP → General**
+Under **Services → Dnsmasq DNS & DHCP → General**:
 
-- Enable on
+- Enable: on
 - Listen port `53053`
-- Interface LAN
+- Interface: LAN
 - Do not forward to system defined DNS servers: on
 - DHCP fqdn: on
 - DHCP register firewall rules: on
-- DHCP default domain empty (uses `home.gregory-dean.com`)
+- DHCP default domain: empty, so it uses the Core domain
 
-**DHCP ranges:** delete leftover `192.168.1.100–199` or IPv6/RA ranges. LAN range `10.10.10.100` to `10.10.10.199`, domain `home.gregory-dean.com`. Router and DNS options are automatic (`10.10.10.1`).
+In **DHCP ranges**, delete any leftover `192.168.1.100` to `199` range and any IPv6 or RA ranges, then set the LAN range to `10.10.10.100` through `10.10.10.199`. The router and DNS options fill in automatically as `10.10.10.1`.
 
-**DHCP options:** set `ntp-server[42]` to `10.10.10.1` on LAN.
+In **DHCP options**, add `ntp-server[42]` = `10.10.10.1` on LAN.
 
-**Hosts** (reservations). Put them in as each device comes online. Dnsmasq wants colons in the MAC.
+**Hosts** is where reservations live. Add them as each device comes online. Dnsmasq wants colons in the MAC address, not the dashes Windows prints.
 
-| Name | Address | Notes |
-| ---- | ------- | ----- |
-| lyra | `10.10.10.2` | Outside the pool |
-| gw-01 | `10.10.10.3` | Outside the pool. Add the Proxmox net0 MAC later |
-| polaris | `10.10.10.11` | Outside the pool |
-| vega | `10.10.10.12` | Outside the pool |
-| sol | `10.10.10.154` | Inside the pool. Windows stays on DHCP |
+| Example name | Address | Notes |
+| ------------ | ------- | ----- |
+| ap | `10.10.10.2` | Outside the pool |
+| lab-gw | `10.10.10.3` | Outside the pool. Add the Proxmox net0 MAC once the VM exists |
+| pve-1 | `10.10.10.11` | Outside the pool |
+| pve-2 | `10.10.10.12` | Outside the pool |
+| admin | `10.10.10.154` | Inside the pool, if the desktop stays on DHCP |
 
-![Dnsmasq hosts](../images/sirius/07-dnsmasq-hosts.jpg)
+![Dnsmasq hosts on my edge](../images/sirius/07-dnsmasq-hosts.jpg)
 
 ### Unbound DNS
 
-**Services → Unbound DNS → General:** enable, listen port 53, interfaces All, DNSSEC on. Leave ISC lease registration off.
+Under **Services → Unbound DNS → General**, enable it on port 53, listening on all interfaces, with DNSSEC on. Leave DHCP lease registration off. Confirm the exact label in the 26.7 UI, since the ISC DHCP integration it used to refer to is gone.
 
-**DNS over TLS** (Domain empty = catch-all):
+For **DNS over TLS**, leave Domain empty so each entry is a catch all:
 
 - `1.1.1.1` port 853, Verify CN `cloudflare-dns.com`
 - `9.9.9.9` port 853, Verify CN `dns.quad9.net`
 
-Do not also add a catch-all under Query Forwarding.
+Don't also add a catch all under Query Forwarding, or the two will fight.
 
-**Query Forwarding** to Dnsmasq for Core names and PTRs:
+**Query Forwarding** is how Unbound answers Core names and PTRs from Dnsmasq:
 
-- `home.gregory-dean.com` → `127.0.0.1` port `53053`
+- The Core domain → `127.0.0.1` port `53053`
 - `10.10.10.in-addr.arpa` → `127.0.0.1` port `53053`
 
-Delete leftover `192.168.1` / `lan.internal` forwards from the default image.
+Delete any leftover `192.168.1` or `lan.internal` forwards that came with the default image.
 
-**Host overrides** under `home.gregory-dean.com`: sirius `10.10.10.1`, lyra `10.10.10.2`, gw-01 `10.10.10.3`, polaris `10.10.10.11`, vega `10.10.10.12`, sol `10.10.10.154`.
+Add **Host overrides** under the Core domain for `edge`, `ap`, `lab-gw`, `pve-1`, `pve-2`, and `admin`. They resolve even when a lease has expired or a guest is off.
 
-**Advanced → Private Domains:** `home.gregory-dean.com` and `lab.gregory-dean.com`. Rebind protection would strip RFC1918 answers otherwise.
+Under **Advanced → Private Domains**, add the Core domain and the AD lab domain. Without this, rebind protection strips RFC1918 answers for those zones.
 
-**System → Settings → Administration → Alternate Hostnames:** `sirius.home.gregory-dean.com`.
+Under **System → Settings → Administration → Alternate Hostnames**, add the firewall's FQDN, for example `edge.home.example.com`.
 
-After `dc-01` exists: Query Forwarding `lab.gregory-dean.com` → `10.30.10.10` port 53. Not before. Unbound would SERVFAIL. The same day, add the gw-01 WAN pass `SIRIUS` → `DC` TCP/UDP 53. Sirius is Core. The `CORE_NET` deny otherwise drops that forward.
+Once the domain controller exists, add a Query Forwarding entry for the AD domain → `10.30.10.10` port 53. Don't add it before then, because Unbound will SERVFAIL on a forwarder that isn't answering. The same day, add the lab router WAN pass from the edge to the DC on TCP/UDP 53. Otherwise the Core deny on `lab-gw` drops that forward and every lab lookup from Core times out.
 
-![Unbound forwarding](../images/sirius/06-unbound-forwarding.jpg)
+![Unbound forwarding on my edge](../images/sirius/06-unbound-forwarding.jpg)
 
 ### NTP
 
-Leave **Services → Network Time** enabled. Upstream stays the OPNsense pool. Core clients use `10.10.10.1` via DHCP option 42.
+Leave **Services → Network Time** enabled with the OPNsense pool upstream. Core clients get `10.10.10.1` as their NTP server through DHCP option 42.
 
 ### Aliases
 
-**Firewall → Aliases**
+Under **Firewall → Aliases**:
 
 | Name | Type | Content |
 | ---- | ---- | ------- |
-| `SOL` | Host(s) | `10.10.10.154` |
+| `ADMIN` | Host(s) | The admin PC, for example `10.10.10.154` |
 | `HYPERVISORS` | Host(s) | `10.10.10.11`, `10.10.10.12` |
 | `LAB_GW` | Host(s) | `10.10.10.3` |
 | `CORE_NET` | Network(s) | `10.10.10.0/24` |
@@ -141,203 +133,211 @@ Leave **Services → Network Time** enabled. Upstream stays the OPNsense pool. C
 | `HTTPS_SSH` | Port(s) | `443`, `22` |
 | `PVE_ADMIN` | Port(s) | `8006`, `22`, `5900:5999` |
 
-`HOME_AND_LAB` exists so one invert can mean “the internet.”
+`HOME_AND_LAB` exists so that a single inverted match can mean "the internet."
 
 ### Static routes
 
-**System → Gateways → Configuration:** name `GW01`, interface LAN, IPv4 `10.10.10.3`, upstream **off**, **Disable Gateway Monitoring** on until gw-01 exists. If monitoring stays on, OPNsense marks the gateway down and withdraws the routes. Leave it off until gw-01 has the Sirius ICMP pass.
+Under **System → Gateways → Configuration**, add a gateway named `LABGW` on interface LAN with IPv4 `10.10.10.3`. Leave upstream off and turn on **Disable Gateway Monitoring** for now. If monitoring stays on before the lab router exists, OPNsense marks the gateway down and withdraws every route that uses it. Leave it disabled until the lab router has an ICMP pass for the edge.
 
-**System → Routes → Configuration** via `GW01`:
+Under **System → Routes → Configuration**, add three routes via `LABGW`:
 
 - `10.30.10.0/24`
 - `10.30.20.0/24`
 - `10.30.30.0/24`
 
-These do nothing until gw-01 boots. Add them now so the lab works the moment it does.
+They don't do anything until the lab router boots, but adding them now means the lab works the moment it does.
 
-![Gateways](../images/sirius/05-gateways.jpg)
+![Gateways on my edge](../images/sirius/05-gateways.jpg)
 
-![Routes](../images/sirius/04-routes-status.jpg)
+![Route status on my edge](../images/sirius/04-routes-status.jpg)
 
 ### NAT
 
-**Firewall → NAT → Source NAT**
+Under **Firewall → NAT → Source NAT**, set the mode to **Hybrid** and add one manual rule: source `LAB_NETS` (`10.30.0.0/16`) out WAN, translated to the WAN address. The lab router doesn't NAT, so lab sources arrive at the edge unchanged and need this rule to get out. The automatic hybrid rules already cover `10.10.10.0/24`. There are no port forwards.
 
-- Mode: **Hybrid**
-- Manual rule: source `LAB_NETS` (`10.30.0.0/16`) out WAN, translate to WAN address. gw-01 does not NAT, so lab sources arrive here unchanged.
-- Automatic hybrid already NATs `10.10.10.0/24`
-- No port forwards
-
-![Source NAT](../images/sirius/03-source-nat.jpg)
+![Source NAT on my edge](../images/sirius/03-source-nat.jpg)
 
 ### WAN and LAN rules
 
-WAN: default deny covers inbound. Add nothing. No WAN management. No ICMP from the internet.
+WAN needs nothing. The default deny covers inbound, and I don't allow management or ICMP from the internet.
 
-**Firewall → Rules**, filter LAN. 26.7 MVC. First match wins (**Quick** on). Direction **in**. Version **IPv4**. Source Port almost always **any**. Interface must be **LAN**, not **any**.
+LAN is where the work is. Open **Firewall → Rules** and filter on LAN. In the 26.7 MVC editor, rules are first match with **Quick** on, direction **in**, and version **IPv4**. Source Port is almost always **any**, and the interface has to be **LAN** rather than **any**.
 
-Leave automatically generated rules (anti-lockout, DHCP). Add the custom rules **while** the default “allow LAN to any” IPv4 rule is still enabled, test, then disable both default LAN allows (IPv4 and IPv6). Click **Apply** or pf is still on the old set.
+Leave the automatically generated rules alone, meaning anti lockout and DHCP. Add the custom rules below while the default "allow LAN to any" IPv4 rule is still enabled, test that everything works, and only then disable both default LAN allows (IPv4 and IPv6). Click **Apply** each time, or pf keeps running the old set.
 
-Do not set Source Port to 53 or 123. That is the client’s ephemeral port. Match **Destination Port**.
-
-If **This Firewall** is missing from the dropdown, use **LAN address**.
+A common mistake is setting Source Port to 53 or 123. That's the client's ephemeral port, so match on **Destination Port** instead. And if **This Firewall** is missing from the destination dropdown, **LAN address** does the same job here.
 
 | # | Protocol | Source | Dest | Dest port | Description |
 | - | -------- | ------ | ---- | --------- | ----------- |
-| auto | | | | | Anti-lockout. Leave it. |
-| 1 | TCP/UDP | `CORE_NET` | This Firewall | DOMAIN (53) | Core DNS to Sirius |
-| 2 | UDP | `CORE_NET` | This Firewall | NTP (123) | Core NTP to Sirius |
-| 3 | ICMP | `CORE_NET` | This Firewall | (none) | Core ping Sirius |
-| 4 | TCP | `SOL` | This Firewall | `HTTPS_SSH` | Sol to Sirius UI and SSH |
-| 5 | TCP | `SOL` | `HYPERVISORS` | `PVE_ADMIN` | Sol to Proxmox UI SSH VNC |
-| 6 | TCP | `SOL` | `LAB_GW` | `HTTPS_SSH` | Sol to gw-01 UI and SSH |
-| 7 | **any** | `SOL` | `LAB_NETS` | any | Sol into lab nets |
-| 8 | any | `CORE_NET` | **invert** `HOME_AND_LAB` | any | Core to internet only |
-| 9 | any | `LAB_NETS` | **invert** `CORE_NET` | any | Lab to internet not Core |
+| auto | | | | | Anti lockout. Leave it. |
+| 1 | TCP/UDP | `CORE_NET` | This Firewall | DOMAIN (53) | Core DNS to the edge |
+| 2 | UDP | `CORE_NET` | This Firewall | NTP (123) | Core NTP to the edge |
+| 3 | ICMP | `CORE_NET` | This Firewall | (none) | Core can ping the edge |
+| 4 | TCP | `ADMIN` | This Firewall | `HTTPS_SSH` | Admin to the edge UI and SSH |
+| 5 | TCP | `ADMIN` | `HYPERVISORS` | `PVE_ADMIN` | Admin to Proxmox UI, SSH, and VNC |
+| 6 | TCP | `ADMIN` | `LAB_GW` | `HTTPS_SSH` | Admin to the lab router UI and SSH |
+| 7 | **any** | `ADMIN` | `LAB_NETS` | any | Admin into the lab networks |
+| 8 | any | `CORE_NET` | **invert** `HOME_AND_LAB` | any | Core to the internet only |
+| 9 | any | `LAB_NETS` | **invert** `CORE_NET` | any | Lab to the internet, not Core |
 
-Gateway on all of these: **None**. Rule 7 must be protocol **any**, not TCP.
+Gateway on all of these is **None**. Rule 7 has to be protocol **any** rather than TCP, or anything that isn't TCP (ping, for a start) never makes it into the lab.
 
-Without 1–3, disabling the default LAN allow breaks DNS and NTP for the whole house, including Sol.
+Rules 1 through 3 matter more than they look. Without them, disabling the default LAN allow kills DNS and NTP for the whole house, including the admin PC you're working from.
 
-Rule 8 is house internet. Core may go anywhere except Core and lab, so Lyra clients are not routed into `10.30.0.0/16`.
+Rule 8 is house internet. Core may go anywhere except Core and the lab, which is what keeps WiFi clients from being routed into `10.30.0.0/16`.
 
-Rule 9 is lab internet through Sirius NAT. It does not stop `kali-01` from reaching Sol. That traffic never touches Sirius because gw-01 and Sol share the same L2. The deny lives on gw-01.
+Rule 9 is lab internet through the edge NAT. It doesn't stop an attack box from reaching the admin PC, because that traffic never touches the edge. `lab-gw` and the admin PC share the same Layer 2, so the deny for that has to live on `lab-gw`.
 
-![LAN rules](../images/sirius/02-lan-rules.jpg)
+![LAN rules on my edge](../images/sirius/02-lan-rules.jpg)
 
 ### Admin hardening
 
-**System → Settings → Administration**
+Under **System → Settings → Administration**, keep the web UI on HTTPS with listen interfaces set to **All**. OPNsense warns that binding to LAN only can lock you out, and WAN is already default deny, so the admin only LAN rules above are the real control. Turn SSH on with root login permitted, listening on all interfaces on port 22. Leave password login on until the key works.
 
-- Web UI HTTPS. Listen interfaces **All**. OPNsense warns that binding to LAN only is a lockout. WAN is already default deny. Sol-only LAN rules are the real control.
-- SSH on. Permit root login on. Permit password login **on until the key works**. Listen All. Port 22.
+Paste the admin PC's public key into **System → Access → Users → root → Authorized keys**, then test with `ssh root@10.10.10.1`. Once that logs in without a password prompt, disable password login. Keep a console session open the whole time so a mistake doesn't lock you out.
 
-Paste the Sol public key into **System → Access → Users → root → Authorized keys**. Test `ssh root@10.10.10.1`. Then disable password login. Keep a console session on the Tiny until key login works.
+UPnP stays off. I don't install the plugin at all.
 
-UPnP off. Do not install it.
+### Edge checks
 
-### Sirius checks
+Before moving on, confirm the following from the admin PC:
 
-- Sol has `10.10.10.154` with gateway and DNS `10.10.10.1`
-- `nslookup sirius.home.gregory-dean.com` and `nslookup polaris.home.gregory-dean.com` from Sol
-- Internet works from Sol
-- Web UI reachable at `https://10.10.10.1` from Sol after the default LAN allow is disabled
-- `ssh root@10.10.10.1` is key only
+- It has its reserved address with gateway and DNS both `10.10.10.1`
+- `nslookup` resolves the edge and a hypervisor by name
+- The internet works
+- `https://10.10.10.1` still loads after the default LAN allow is disabled
+- SSH works with the key and rejects passwords
 
-Sirius cannot filter Sol from gw-01. They share Core L2. Isolation for the cyber range is the other OPNsense.
+One more thing to understand before the next section. The edge cannot filter the admin PC from `lab-gw`, because they share Core Layer 2 and the edge never sees that traffic. Isolation for the cyber range comes from the other OPNsense.
 
-## gw-01 (VM on Polaris)
+## Lab router (`lab-gw`)
 
-Create the VM in [hypervisor](hypervisor.md) first. Four virtio NICs: `vmbr0` Core, then `labsrv`, `labep`, `labatk`.
+Create the VM in [hypervisor](hypervisor.md) first, with four virtio NICs: `vmbr0` for Core, then `labsrv`, `labep`, and `labatk`.
 
-WAN is Core. Fresh OPNsense treats it like the internet: block-private on, default deny, reply-to the WAN gateway. Apply and console menu 2 re-enable pf. Create the `SOL` alias and a WAN pass for Sol **before** pf stays on, or the Sol session drops.
+The lab router's WAN is Core, and a fresh OPNsense treats WAN like the internet: block private networks on, default deny inbound, and replies pinned to the WAN gateway with `reply-to`. Every Apply, and console menu 2, turns pf back on with those defaults. So create the `ADMIN` alias and a WAN pass for the admin PC before you let pf stay enabled, or your GUI session drops every time you save.
 
-Unlock from the **gw-01** console (Proxmox noVNC → menu 8), not from Polaris:
+When it does lock you out, unlock it from the `lab-gw` console (Proxmox noVNC, then menu 8), not from the hypervisor host:
 
 ```bash
 pfctl -d
 ifconfig vtnet0
 ```
 
-`vtnet0` must show `inet 10.10.10.3`. A pool address (`10.10.10.100`–`199`) means DHCP won. Set WAN to Static again. Then `https://10.10.10.3` from Sol, add the Sol WAN pass, **Firewall → Settings → Advanced → Disable reply-to**, Apply, `pfctl -e`. Confirm the GUI still loads with pf enabled.
+`vtnet0` should show `inet 10.10.10.3`. If it shows a pool address between `10.10.10.100` and `.199`, DHCP won and you need to set WAN back to Static. Then from the admin PC open `https://10.10.10.3`, add the admin WAN pass, turn on **Firewall → Settings → Advanced → Disable reply-to**, click Apply, and run `pfctl -e`. Confirm the GUI still loads with pf enabled before you do anything else.
 
-![gw-01 dashboard](../images/gw-01/01-dashboard.jpg)
+![My lab router dashboard](../images/gw-01/01-dashboard.jpg)
 
-26.7 MVC rules cannot take a raw IP in Source or Destination. Create aliases first. Search the alias name, not `10.10.10.154`.
+One quirk of the 26.7 MVC rule editor: Source and Destination can't take a raw IP address. Create the aliases first and search by alias name.
 
 ### Interfaces
 
-vtnet order follows net0 to net3. Confirm MACs against the Proxmox NIC list.
+The `vtnet` order follows net0 through net3. Confirm the MACs against the Proxmox NIC list before assigning anything.
 
-- WAN = vtnet0 (Core uplink): **Static** `10.10.10.3/24`, upstream gateway `10.10.10.1`, no DHCP client, no DHCP server, IPv6 none. Block private networks **off**. Block bogons **off**.
-- OPT1 rename LABSRV = vtnet1: `10.30.10.1/24`, DHCP `10.30.10.100` to `10.30.10.199`
-- OPT2 rename LABEP = vtnet2: `10.30.20.1/24`, DHCP `10.30.20.100` to `10.30.20.199`
-- OPT3 rename LABATK = vtnet3: `10.30.30.1/24`, DHCP `10.30.30.100` to `10.30.30.199`
+- WAN is vtnet0, the Core uplink. Set it **Static** at `10.10.10.3/24` with upstream gateway `10.10.10.1`. No DHCP client, no DHCP server, IPv6 none. Block private networks **off** and block bogons **off**, since this WAN is a private network on purpose.
+- OPT1 is vtnet1. Rename it LABSRV, `10.30.10.1/24`, DHCP `10.30.10.100` to `10.30.10.199`.
+- OPT2 is vtnet2. Rename it LABEP, `10.30.20.1/24`, DHCP `10.30.20.100` to `10.30.20.199`.
+- OPT3 is vtnet3. Rename it LABATK, `10.30.30.1/24`, DHCP `10.30.30.100` to `10.30.30.199`.
 
-System settings: hostname `gw-01`, domain `lab.gregory-dean.com`, timezone `America/Boise`.
+In system settings, the hostname is `lab-gw`, the domain is the AD lab domain, and the timezone matches the edge.
 
-Unbound on gw-01: listen on the three lab interfaces. Query forwarding to `10.10.10.1`. Do **not** add a domain override for `lab.gregory-dean.com` to `10.30.10.10` until the DC exists.
+Unbound on the lab router listens on the three lab interfaces and forwards everything to `10.10.10.1`. Don't add a domain override for the AD zone until the DC exists.
 
-NAT: Source NAT (Outbound) mode **Disable**. gw-01 is a router. Sirius does the NAT.
+Under **Firewall → NAT → Source NAT**, set the mode to **Disable**. This box is a router, and the edge does the NAT.
 
-![gw-01 Source NAT](../images/gw-01/05-source-nat.jpg)
+![Source NAT on my lab router](../images/gw-01/05-source-nat.jpg)
 
-**Firewall → Settings → Advanced → Disable reply-to** on. WAN and Sol share Core L2. Reply-to `WAN_GW` (`10.10.10.1`) breaks the Sol GUI even when the pass rule matches. Sirius keeps reply-to. Its WAN is public.
+Under **Firewall → Settings → Advanced**, turn on **Disable reply-to**. The WAN here and the admin PC share Core Layer 2, and `reply-to` pinned to `WAN_GW` (`10.10.10.1`) forces replies through the edge, which breaks the GUI even when the pass rule matches. The edge keeps `reply-to` because its WAN really is public.
 
-![Disable reply-to](../images/gw-01/04-disable-reply-to.jpg)
+![Disable reply-to on my lab router](../images/gw-01/04-disable-reply-to.jpg)
 
-Add the gw-01 net0 MAC to the Sirius Dnsmasq host reservation for `10.10.10.3` so DHCP cannot hand out a pool address again.
+Add the lab router's net0 MAC to the edge Dnsmasq reservation for `10.10.10.3` so DHCP can never hand it a pool address again.
 
-Turn Sirius gateway `GW01` monitoring on only after Sirius **Interfaces → Diagnostics → Ping** to `10.10.10.3` works. That needs the `SIRIUS` WAN pass below. If monitoring is on and the ping fails, OPNsense marks `GW01` down and withdraws the `10.30` routes.
+Turn edge gateway monitoring for `LABGW` back on only after **Interfaces → Diagnostics → Ping** on the edge gets replies from `10.10.10.3`. That needs the edge ICMP pass in the WAN rules below. If monitoring is on and the ping fails, OPNsense marks `LABGW` down and the `10.30` routes disappear.
 
-### gw-01 aliases
+### Lab router aliases
 
-- `SOL` host `10.10.10.154`
-- `SIRIUS` host `10.10.10.1`
-- `CORE_NET` network `10.10.10.0/24`
-- `LABSRV_NET` network `10.30.10.0/24`
-- `LABEP_NET` network `10.30.20.0/24`
-- `LABATK_NET` network `10.30.30.0/24`
-- `DC` host `10.30.10.10`
-- `SIEM` host `10.30.10.50`
+- `ADMIN`, host, the admin PC
+- `EDGE`, host, `10.10.10.1`
+- `CORE_NET`, network, `10.10.10.0/24`
+- `LABSRV_NET`, network, `10.30.10.0/24`
+- `LABEP_NET`, network, `10.30.20.0/24`
+- `LABATK_NET`, network, `10.30.30.0/24`
+- `DC`, host, `10.30.10.10`
+- `SIEM`, host, `10.30.10.50`
 
-### gw-01 rules
+### Lab router rules
 
-WAN (the Core uplink), in order:
+OPNsense evaluates top down and stops at the first match, so block rules sit above the allows they override. Review the order after saving.
 
-1. Allow source `SOL` to any (admin plus jump into the lab)
-2. Allow source `SIRIUS` to This Firewall, ICMP (Sirius `GW01` monitor). The `CORE_NET` deny also matches `10.10.10.1`.
-3. Allow source `SIRIUS` to `DC`, TCP/UDP 53 (Sirius Unbound → `dc-01`). Add this when the DC exists.
-4. Deny source `CORE_NET` to any (phones and house devices stay out of the lab)
+On WAN, the Core uplink:
 
-![WAN rules](../images/gw-01/02-wan-rules.jpg)
+1. Allow source `ADMIN` to any. This is admin access plus the jump into the lab.
+2. Allow source `EDGE` to This Firewall, ICMP, for the edge `LABGW` monitor. Without it, the `CORE_NET` deny below catches the edge too.
+3. Allow source `EDGE` to `DC`, TCP/UDP 53, so edge Unbound can reach the DC. Add this when the DC exists.
+4. Deny source `CORE_NET` to any. Phones and house devices stay out of the lab.
 
-LABSRV, in order:
+![WAN rules on my lab router](../images/gw-01/02-wan-rules.jpg)
 
-1. Allow to `LABEP_NET` any (AD, GPO, SMB)
-2. Allow to `LABSRV_NET` any (server to server, SIEM agents)
+On LABSRV:
+
+1. Allow to `LABEP_NET` any, for AD, GPO, and SMB
+2. Allow to `LABSRV_NET` any, for server to server traffic and SIEM agents
 3. Block to `CORE_NET` any
-4. Block to `LABATK_NET` any (servers do not initiate toward Kali)
-5. Allow to any (internet via Sirius)
+4. Block to `LABATK_NET` any, since servers don't initiate toward the attack box
+5. Allow to any, for internet via the edge
 
-LABEP, in order:
+On LABEP:
 
-1. Allow to `DC` any (domain join first build)
-2. Allow to `SIEM` any (Wazuh agent)
+1. Allow to `DC` any, for the first domain join
+2. Allow to `SIEM` any, for the Wazuh agent
 3. Allow to `LABSRV_NET` any
 4. Block to `CORE_NET` any
 5. Block to `LABATK_NET` any
-6. Allow to any (internet)
+6. Allow to any, for internet
 
-LABATK, in order:
+On LABATK:
 
-1. Block to `CORE_NET` any (the rule that protects Sol, the hypervisors, Lyra, and anything personal on Core)
+1. Block to `CORE_NET` any. This protects the admin PC, the hypervisors, the AP, and anything personal on Core.
 2. Allow to `LABSRV_NET` any
 3. Allow to `LABEP_NET` any
-4. Allow to any (tools and updates)
+4. Allow to any, for tools and updates
 
-![LABATK rules](../images/gw-01/03-labatk-rules.jpg)
-
-Block rules sit above the allows they override. Review order after saving. OPNsense evaluates top down. First match wins.
+![LABATK rules on my lab router](../images/gw-01/03-labatk-rules.jpg)
 
 ### DHCP DNS after the DC
 
-On gw-01 **Services → Dnsmasq DNS & DHCP → DHCP options → +**: `dns-server[6]` = `10.30.10.10` on LABSRV and LABEP. The options table starts empty. There is nothing to edit. Do not change LABATK. Kali stays on `10.30.30.1`.
+Once the domain controller is promoted, go to **Services → Dnsmasq DNS & DHCP → DHCP options** on the lab router and click **+** to add `dns-server[6]` = `10.30.10.10` on LABSRV and LABEP. The options table starts empty, so there's nothing to edit, only add. Leave LABATK alone. The attack box keeps using `10.30.30.1`.
 
-Same day on gw-01 Unbound: query forwarding `lab.gregory-dean.com` → `10.30.10.10`.
+The same day, add query forwarding for the AD zone → `10.30.10.10` in the lab router's Unbound.
 
-### gw-01 checks
+### Lab router checks
 
-From Sol:
+From the admin PC:
 
 - `ping 10.10.10.3` answers
-- `ping 10.30.10.1` answers (Sirius static routes plus gw-01)
+- `ping 10.30.10.1` answers, which proves the edge static routes and `lab-gw` together
 - `ping 10.30.20.1` and `ping 10.30.30.1` answer
-- `https://10.10.10.3` opens from Sol with pf enabled
-- A phone on Lyra cannot open `https://10.10.10.3`
+- `https://10.10.10.3` opens with pf enabled
+- A phone on WiFi cannot open `https://10.10.10.3`
 
-From Sirius: Diagnostics ping to `10.10.10.3` replies. **System → Gateways → Status** shows `GW01` Online. **System → Routes → Status** shows the three `10.30` prefixes via `10.10.10.3`.
+From the edge, a Diagnostics ping to `10.10.10.3` replies, **System → Gateways → Status** shows `LABGW` Online, and **System → Routes → Status** lists the three `10.30` prefixes via `10.10.10.3`.
 
-Expected non-issues: `vxlan_*` UNKNOWN. gw-01 cannot ping Polaris. The datacenter firewall has no ICMP allow. That is not a broken overlay.
+Two things look wrong but aren't. The `vxlan_*` interfaces on the hypervisors show operstate UNKNOWN, and the lab router can't ping the hypervisor. The datacenter firewall has no ICMP allow, and that's not a broken overlay.
 
-If Sol cannot ping `10.30.10.1`, check Sirius routes, `GW01` not down, gw-01 WAN gateway, and that NAT is disabled on gw-01. If Sol cannot open the GUI with pf on, check Disable reply-to and that WAN is still Static `.3`.
+## If something breaks
+
+WAN came up as `192.168.x.x` or something in `10.x`. The modem is still NATing. Put it in bridge mode.
+
+The NIC names don't match the ports on the bracket. Unplug everything and bring one cable up at a time, then label the ports you actually assigned.
+
+House DNS died the moment you disabled "allow LAN to any." Rules 1 through 3 weren't in place first. Turn the default rule back on, add them, and try again.
+
+The `10.30` routes vanished. Gateway monitoring marked `LABGW` down. Disable monitoring until the lab router passes ICMP from the edge, then turn it back on.
+
+The lab router's WAN grabbed a pool address. Set WAN back to static and reserve its MAC on the edge so it can't happen again.
+
+The GUI died when you enabled pf on the lab router. The `reply-to` setting is still on, and WAN shares a Layer 2 with the admin PC. Disable it.
+
+`nslookup` for a lab name through the edge times out, but the DC answers when you ask it directly. The WAN pass from the edge to the DC on TCP/UDP 53 is missing, or it's below the Core deny.
+
+The admin PC can't ping `10.30.10.1`. Check the edge routes, make sure `LABGW` isn't marked down, confirm the lab router's WAN gateway, and confirm NAT is disabled on the lab router.

@@ -1,37 +1,34 @@
 # Hypervisor
 
-Two Proxmox nodes, one UI, no shared storage, no HA.
+The two nodes here are `pve-1` at `10.10.10.11` and `pve-2` at `10.10.10.12`, both placeholders. What I actually run is in [hardware](../docs/hardware.md) and [network](../docs/network.md).
 
-Sirius has to be up first. Both nodes need Core addresses and DNS at `10.10.10.1`.
+The design is two Proxmox nodes in one cluster with one UI, no shared storage, and no HA. One node is enough to start with. The overlay only matters once guests need to live on more than one box.
 
-## Polaris (M720q i5-9500T)
+The edge firewall has to be up before any of this. Both nodes need Core addresses and DNS at `10.10.10.1`.
 
-Primary node. 32 GB DDR4-2666. 512 GB M.2 NVMe on ZFS, single disk.
+## Install each node
 
-ZFS here is for snapshots and checksums. It is not a mirror. If the NVMe dies, those guests die with it.
-
-### Install
-
-1. On Sol, download the current Proxmox VE ISO and verify the SHA256.
-2. Write USB with Rufus in dd mode. Boot Polaris from it.
-3. Target disk: the 512 GB NVMe. Options, filesystem ZFS RAID0, single disk.
-4. Country United States, timezone `America/Boise`, then keyboard.
-5. Set a strong root password. The installer email field is for Proxmox alerts.
-6. Network:
-   - Interface: the onboard NIC
-   - Hostname `polaris.home.gregory-dean.com`
-   - IP `10.10.10.11/24`
+1. On the admin PC, download the current Proxmox VE ISO and verify the SHA256.
+2. Write it to USB with Rufus in DD mode and boot the machine from it.
+3. Target the internal disk and pick a filesystem that fits it. ZFS on a single disk gives you snapshots and checksums but not a mirror. ext4 with LVM thin is simpler on a smaller drive and leaves more RAM for guests. I run one of each, and either works.
+4. Set country, timezone, and keyboard.
+5. Set a strong root password. The email field is where Proxmox sends alerts.
+6. For the network, pick the NIC that reaches Core and set:
+   - Hostname `pve-1.home.example.com`, using your Core domain
+   - IP `10.10.10.11/24`, or `.12` on the second node
    - Gateway `10.10.10.1`
    - DNS `10.10.10.1`
-7. Finish, reboot, remove USB.
+7. Finish, reboot, and pull the USB.
 
-### First boot
+In the BIOS, enable virtualization (VT-x or AMD-V) and turn Secure Boot off if the installer complains about it.
 
-SSH from Sol: `ssh root@10.10.10.11`
+## First boot
 
-1. Repositories: disable `pve-enterprise`, enable the no subscription repo. In the UI this is under the node, **Updates → Repositories**. No Ceph repos. I do not run Ceph.
-2. `apt update` then `apt dist-upgrade`, reboot.
-3. Timezone `America/Boise`. NTP to `10.10.10.1`. Cluster and AD both care about the clock.
+SSH in from the admin PC with `ssh root@10.10.10.11`, then work through the following.
+
+1. Fix the repositories. Disable `pve-enterprise` and enable the no subscription repo. In the UI this is under the node at **Updates → Repositories**. Skip the Ceph repos unless you actually run Ceph.
+2. Run `apt update` and `apt dist-upgrade`, then reboot.
+3. Set the same timezone on every node and point NTP at `10.10.10.1`. Both the cluster and Active Directory care about the clock.
 4. Confirm `/etc/network/interfaces` has a single bridge:
 
 ```text
@@ -44,143 +41,125 @@ iface vmbr0 inet static
     bridge-fd 0
 ```
 
-Interface name may differ. Check with `ip link`. Do not make `vmbr0` VLAN aware. Tagged frames would go to the unmanaged switch and die.
+The interface name may differ, so check with `ip link`. Don't make `vmbr0` VLAN aware unless the switch is doing VLANs. Tagged frames go nowhere on an unmanaged switch.
 
-5. Static map on Sirius: add the Polaris MAC to the `10.10.10.11` reservation.
+5. Add each node's MAC to its reservation on the edge.
 
-Checks: UI at `https://10.10.10.11:8006` from Sol. `zpool status` shows the single disk pool healthy. `free -h` shows around 31 GB total.
+Open `https://10.10.10.11:8006` from the admin PC to confirm the UI loads, then repeat all of this on the second node.
 
-![Polaris](../images/proxmox/02-polaris-summary.jpg)
+![Summary page for my primary node](../images/proxmox/02-polaris-summary.jpg)
 
-Guests on this node: `gw-01`, `dc-01`, `winclient-01`, `siem-01`.
-
-## Vega (M715q Ryzen 3 PRO 2200GE)
-
-Second node. 32 GB DDR4-3200. 250 GB SATA SSD with ext4 and LVM-thin.
-
-### Install
-
-Same ISO and USB as Polaris.
-
-1. Target disk: the 250 GB SATA SSD. Filesystem ext4 with LVM-thin (the installer default). Simpler than ZFS on the smaller disk and leaves more RAM for guests.
-2. Hostname `vega.home.gregory-dean.com`
-3. Timezone `America/Boise`
-4. IP `10.10.10.12/24`, gateway `10.10.10.1`, DNS `10.10.10.1`
-5. Finish, reboot, remove USB.
-
-### First boot
-
-SSH from Sol: `ssh root@10.10.10.12`
-
-1. Repositories: same as Polaris, no subscription repo only.
-2. `apt update` then `apt dist-upgrade`, reboot.
-3. Timezone `America/Boise`. NTP to `10.10.10.1`. Confirm the clock matches Polaris.
-4. Confirm `vmbr0` on the onboard NIC, static `10.10.10.12/24`, `bridge-stp off`, `bridge-fd 0`, not VLAN aware.
-5. Static map on Sirius: add the Vega MAC to the `10.10.10.12` reservation.
-
-Checks: UI at `https://10.10.10.12:8006`. `pvesm status` shows `local` and `local-lvm`. Both nodes can ping each other. Sol does not answer ping.
-
-![Vega](../images/proxmox/03-vega-summary.jpg)
-
-Guests on this node: `ubuntu-01` and `kali-01`.
+If you have two nodes, decide now which one will hold the attack box, and keep identity off it. The domain controller, the SIEM, and the lab router all go on the other node.
 
 ## Cluster
 
-Cluster name `homelab`. Created on Polaris, Vega joined. Corosync rides `vmbr0`.
+Pick any cluster name. Create it on `pve-1` and join from `pve-2`. Corosync rides `vmbr0`.
 
-On Polaris:
+On `pve-1`:
 
 ```bash
 pvecm create homelab
 ```
 
-On Vega:
+On `pve-2`:
 
 ```bash
 pvecm add 10.10.10.11
 ```
 
-Confirm with `pvecm status` on either node. Both nodes now show in one UI at `https://10.10.10.11:8006`.
+Check `pvecm status` on either node. Both nodes should now show in one UI at `https://10.10.10.11:8006`.
 
-![Cluster](../images/proxmox/01-cluster-tree.jpg)
+![My cluster tree](../images/proxmox/01-cluster-tree.jpg)
 
-No HA. Two nodes have no tiebreaker vote. If one node dies the survivor can lose quorum and refuse changes. Recovery on the live node:
+I don't run HA, and with two nodes I couldn't anyway. There's no tiebreaker vote, so if one node dies the survivor can lose quorum and refuse changes. When that happens, tell the live node to expect only itself:
 
 ```bash
 pvecm expected 1
 ```
 
-Storage definitions replicate. `local-zfs` is Polaris `rpool`. After Vega joins it appears on Vega and is inactive (`cannot import 'rpool'`). **Datacenter → Storage → local-zfs → Edit → Nodes:** `polaris` only.
+Storage definitions replicate across the cluster, and that trips people up when the nodes don't match. If one node uses ZFS (`rpool` and `local-zfs`) and the other doesn't, pin that store to the ZFS node. After the join, the other node lists it as inactive with `cannot import 'rpool'`. Go to **Datacenter → Storage**, edit that store, and restrict **Nodes** to the one that actually has the pool.
 
-Vega’s thin pool is `pve/data`. If **Datacenter → Storage** has no `local-lvm` for Vega, **Add → LVM-Thin**, ID `local-lvm`, node `vega`, VG `pve`, thin pool `data`. Confirm with `pvesm status` and `lvs` on Vega. Do not put Vega guests on `local-zfs`. Create fails with `cannot import 'rpool'`.
+If the second node uses LVM thin and **Datacenter → Storage** has no `local-lvm` entry for it, add one with **Add → LVM-Thin**: ID `local-lvm`, that node only, volume group `pve`, thin pool `data`. Confirm with `pvesm status` and `lvs`. Never create a guest on a store its node can't import.
 
-ISOs for Vega guests go to `local` on Vega. Polaris `local` is not visible there.
+ISOs are per node too. Upload them to `local` on the node that will run the guest, because the other node's `local` isn't visible there.
 
-![Storage](../images/proxmox/06-storage.jpg)
+![My storage page](../images/proxmox/06-storage.jpg)
 
 ## Datacenter firewall
 
-**Datacenter → Firewall**. Order matters. Create the rules before enabling, or the UI session drops.
+This is **Datacenter → Firewall**, with its Options, IPSet, and Rules tabs. It's not the **SDN → VNet Firewall** page, which I leave empty.
 
-1. IPSets: `sol` containing `10.10.10.154`, and `pve_peers` containing `10.10.10.11` and `10.10.10.12`.
-2. Rules, direction IN, action ACCEPT:
-   - source `+sol`, dest ports 8006 and 22, TCP
-   - source `+pve_peers`, UDP 5404 to 5405 (corosync)
-   - source `+pve_peers`, UDP 4789 (VXLAN)
-   - source `+pve_peers`, TCP 8006, 22, 3128, 5900 to 5999, 60000 to 60050 (UI proxy, SSH, spice, console, migration)
-3. Input policy DROP, output policy ACCEPT.
-4. Enable firewall at datacenter level, then on both nodes.
-5. Confirm the UI still loads from Sol and `pvecm status` still shows both votes. If corosync drops, the peer rule is wrong. Fix before continuing.
+Order matters here. Create the IPSets and rules before you enable anything, or the UI session drops the moment you turn it on.
 
-A phone on Core should not open `https://10.10.10.11:8006` after this is on.
+1. Create two IPSets: `admin` containing the admin PC, and `pve_peers` containing both node addresses.
+2. Add rules with direction IN and action ACCEPT:
+   - Source `+admin`, TCP, destination ports 8006 and 22
+   - Source `+pve_peers`, UDP 5404 to 5405, for corosync
+   - Source `+pve_peers`, UDP 4789, for VXLAN
+   - Source `+pve_peers`, TCP 8006, 22, 3128, 5900 to 5999, and 60000 to 60050, for the UI proxy, SSH, spice, console, and migration
+3. Set the input policy to DROP and the output policy to ACCEPT.
+4. Enable the firewall at the datacenter level, then on each node.
+5. Confirm the UI still loads from the admin PC and that `pvecm status` still shows both votes. If corosync drops, the peer rule is wrong. Fix it before you go further.
 
-That page is **Datacenter → Firewall** (Options, IPSet, Rules). It is not **SDN → VNet Firewall**.
+After this, a phone on Core should not be able to open `https://10.10.10.11:8006`.
 
 ## SDN overlay
 
-**Datacenter → SDN**
+If you only have one node, skip this and put guests on a plain Linux bridge. With two nodes, don't create extra bridges with no NIC attached. A bridge like that only exists on the node where you made it, and guests on the other node can't see it.
 
-1. Zones: add a VXLAN zone, ID `lab`, peers `10.10.10.11` and `10.10.10.12`, MTU 1450.
-2. VNets: add three, all in zone `lab`, no subnets defined on the Proxmox side (gw-01 owns the gateways):
+Under **Datacenter → SDN**:
+
+1. In Zones, add a VXLAN zone with ID `lab`, both node addresses as peers, and MTU 1450.
+2. In VNets, add three in zone `lab`, with no subnets defined on the Proxmox side since `lab-gw` owns the gateways:
    - `labsrv`
    - `labep`
    - `labatk`
-3. Apply. Check both nodes show the vnets under their network lists. `vxlan_*` operstate `UNKNOWN` with `UP,LOWER_UP` is normal. The Proxmox `localnet` zone can stay. Do not put guests on it.
+3. Apply, then check that both nodes list the vnets under their network views. The `vxlan_*` interfaces show operstate `UNKNOWN` with `UP,LOWER_UP`, and that's normal. The `localnet` zone Proxmox creates can stay, but don't put guests on it.
 
-![SDN zone](../images/proxmox/04-sdn-zone.jpg)
+![My SDN zone](../images/proxmox/04-sdn-zone.jpg)
 
-![SDN vnets](../images/proxmox/05-sdn-vnets.jpg)
+![My SDN vnets](../images/proxmox/05-sdn-vnets.jpg)
 
-I leave **Datacenter → SDN → VNet Firewall** empty. Isolation is gw-01, not a Proxmox VNet rule.
+I leave **Datacenter → SDN → VNet Firewall** empty on purpose. Isolation is the lab router VM's job, not a Proxmox VNet rule.
 
-![VNet firewall](../images/proxmox/07-sdn-vnet-firewall.jpg)
+![VNet firewall, empty](../images/proxmox/07-sdn-vnet-firewall.jpg)
 
-Do not create extra Linux bridges for the lab. A bridge with no physical NIC is local to one node. The VXLAN zone is what lets a guest on Vega talk L2 to a guest on Polaris.
+Guests on the overlay need MTU 1450. Set it in the guest NIC config under Advanced, or let Proxmox propagate it.
 
-Guest MTU: 1450. Set it in the guest NIC config (tick Advanced) or leave Proxmox to propagate it.
+## Lab router VM
 
-## gw-01 VM
+Create this on the node that holds identity, not the attack node. OPNsense configuration is in [firewall](firewall.md). This section only covers the VM itself.
 
-Create on Polaris. OPNsense config is in [firewall](firewall.md). This section is only the VM.
-
-- VM ID 100, name `gw-01`
-- OS: OPNsense **dvd** ISO (amd64), same 26.7 major as Sirius. Upload to Polaris `local` from Sol. Not the vga USB image.
-- Machine q35, BIOS SeaBIOS
-- 32 GB disk, virtio SCSI, on `local-zfs`
+- Name `lab-gw`
+- OS: the OPNsense **dvd** ISO for amd64, same major version as the edge, uploaded to this node's `local`. Not the vga USB image.
+- Machine q35 with SeaBIOS
+- Disk on virtio SCSI
 - 4 vCPU, type host
-- 4 GB RAM, ballooning off. 2 GB was not enough. The guest sat at 99% RAM.
+- 4 GB RAM with ballooning off. I started at 2 GB and the guest sat at 99% memory, so don't go lower.
 - net0 virtio on `vmbr0`
 - net1 virtio on `labsrv`
 - net2 virtio on `labep`
 - net3 virtio on `labatk`
 - QEMU guest agent on
-- Options: start at boot on, start order 1
+- Start at boot on, start order 1
 - Options → Firewall **No**
 
-Install OPNsense in the VM the same way as Sirius (GPT, UFS). Then go back to [firewall](firewall.md) for interfaces, reply-to, aliases, and rules.
+Install OPNsense in the VM the same way you did on the edge, GPT and UFS. Then go back to [firewall](firewall.md) for interfaces, `reply-to`, aliases, and rules.
 
-## Admin habits
+## How I run it day to day
 
-I work from Sol at `https://10.10.10.11:8006`. Guest agent on. virtio SCSI, not VirtIO Block and not IDE for the OS disk. CPU type host. Lab NIC MTU 1450. Windows guests use OVMF. `gw-01` uses SeaBIOS. Guest firewall stays off unless I add rules.
+I work from the admin PC at `https://10.10.10.11:8006`. Every guest gets the QEMU agent, a virtio SCSI disk rather than VirtIO Block or IDE, CPU type host, and MTU 1450 on lab NICs. Windows guests use OVMF and the lab router uses SeaBIOS. Guest firewalls stay off unless I add rules, and the repositories stay on the no subscription list.
 
-Repos are the no subscription list. No Ceph.
+## If something breaks
+
+Creating a VM fails with `cannot import 'rpool'`. The ZFS store is visible on a node that doesn't have that pool. Pin it to the right node.
+
+The cluster refuses changes after one host goes down. Two nodes have no tiebreaker. Run `pvecm expected 1` on the live node.
+
+The UI dropped the instant you enabled the firewall. The admin IPSet was empty or the rules weren't saved first. Get in through the console, fix the rules, and try again.
+
+Corosync died after the firewall came on. The peer rule for UDP 5404 to 5405 is missing or the `pve_peers` IPSet is wrong.
+
+Guests on different nodes can't ping each other. You made a local bridge instead of using the VXLAN zone, or the guest MTU is still 1500.
+
+Tagged frames go nowhere. `vmbr0` is VLAN aware and the switch isn't.

@@ -1,126 +1,107 @@
 # Lab guests
 
-I rebuilt these from ISO. I did not import old disks.
+Addresses on this page use `10.30.10.0/24` for servers, `10.30.20.0/24` for endpoints, and `10.30.30.0/24` for the attack box. Hostnames like `dc-01` are placeholders. What I actually run is in [network](../docs/network.md).
 
-`gw-01` is already running from [hypervisor](hypervisor.md) and [firewall](firewall.md). This page is the rest of the range.
+I build every guest from an ISO rather than importing old disks. It's slower the first time and much easier to reason about afterward.
 
-## Defaults
+`lab-gw` should already be running from [hypervisor](hypervisor.md) and [firewall](firewall.md). This page is the rest of the range.
 
-Unless a guest says otherwise:
+## Defaults for every guest
 
-- Machine q35
-- Disk: virtio SCSI (`scsi0`). Not VirtIO Block (`virtio0`) and not IDE
-- NIC: virtio, on the SDN vnet, MTU 1450 (tick Advanced)
-- QEMU guest agent on
-- CPU type **host**, not `x86-64-v2-AES`
-- Balloon off on Windows and on gw-01
+Unless a section below says otherwise, every guest gets:
+
+- Machine type q35
+- A virtio SCSI disk (`scsi0`), not VirtIO Block (`virtio0`) and not IDE
+- A virtio NIC on the right SDN vnet with MTU 1450, set under Advanced
+- The QEMU guest agent on
+- CPU type **host** rather than `x86-64-v2-AES`
+- Ballooning off on Windows guests and on the lab router
 - Options → Firewall **No**
-- Create VM: Start after created **off** until the virtio CD is attached on Windows guests
+- "Start after created" unchecked on Windows guests, so you can attach the virtio driver CD first
 
-Vega disk store is `local-lvm`. Do not use `local-zfs` on Vega. Upload Ubuntu and Kali ISOs to Vega `local`.
+Upload each ISO to `local` on the node that will run the guest, and put the disk on a store that node can actually import.
 
-Set Windows IPv4 in `ncpa.cpl`, not Settings. Allow ICMPv4 echo on Windows guests or Sol’s ping check fails even when the guest can ping the DC.
+If you have two nodes, keep the domain controller off the node that holds the attack box.
+
+On Windows guests, set IPv4 in `ncpa.cpl` rather than the Settings app, and allow ICMPv4 echo through Windows Firewall. Otherwise a ping from the admin PC fails even though the guest can reach the DC without any trouble.
 
 ## Order
 
-1. `dc-01`
-2. `ubuntu-01`
-3. `winclient-01`
-4. `siem-01`
-5. `kali-01`
+1. Domain controller
+2. Linux server, optional and off the domain
+3. Domain workstation
+4. SIEM
+5. Attack box
 
-## dc-01
+## Domain controller
 
-- Node: Polaris. VM ID 101. Storage `local-zfs`
-- 2 vCPU, 4 GB RAM, 80 GB disk
 - NIC on `labsrv`
-- IP `10.30.10.10/24`, gateway `10.30.10.1`
-- DNS `10.30.10.1` during install, then itself after AD DS
-- OS: Windows Server 2022, OVMF, add TPM if the ISO asks
-- Start order 2
+- `10.30.10.10/24`, gateway `10.30.10.1`
+- DNS `10.30.10.1` during install, then itself after AD DS is up
+- Windows Server on OVMF, with a TPM if the ISO asks for one
 
-Attach the VirtIO driver ISO for storage (`vioscsi`) and network (`NetKVM`). During Setup, load the SCSI driver from `vioscsi` or the disk never appears. After Setup, run `virtio-win-gt-x64.msi` plus the guest-agent MSI.
+Start this one early so everything else can find it.
 
-Hostname `dc-01`. Address in `ncpa.cpl`. Discoverable Yes.
+Attach the VirtIO driver ISO for storage (`vioscsi`) and networking (`NetKVM`). During Setup, load the SCSI driver from `vioscsi` or the disk never shows up. After Setup, run `virtio-win-gt-x64.msi` and the guest agent MSI.
 
-Promote to domain controller for `lab.gregory-dean.com`, NetBIOS `LAB`. Forest functional level: highest in the list (2016 is fine on this ISO). DNS delegation warning: continue, checkbox off. DSRM is a new password, not the domain Administrator login. Do not reuse them.
+Set the hostname, set the address in `ncpa.cpl`, and answer Yes to network discovery.
+
+Promote it to a domain controller for a dedicated lab zone, for example `lab.example.com`. Pick the highest forest functional level in the list. When the DNS delegation warning appears, continue with the checkbox off. And pay attention to the DSRM password prompt: that's a separate recovery password, not the domain Administrator login. Don't reuse the same one for both.
 
 After promotion:
 
-1. On `dc-01`, set DNS to `10.30.10.10` and add a DNS forwarder to `10.30.10.1`.
-2. Sirius Unbound Query Forwarding `lab.gregory-dean.com` → `10.30.10.10`.
-3. Same forwarding on gw-01 Unbound.
-4. gw-01 WAN pass `SIRIUS` → `DC` TCP/UDP 53, above the `CORE_NET` deny. Without it, `nslookup` via `10.10.10.1` times out while the DC answers on `.10`.
-5. gw-01 **DHCP options → +**: `dns-server[6]` = `10.30.10.10` on LABSRV and LABEP. Do not change LABATK.
-6. Allow ICMPv4 echo on the guest so Sol can ping `.10`.
+1. On the DC, set DNS to itself and add a forwarder to `10.30.10.1`.
+2. On the edge, add Unbound Query Forwarding for the AD zone → the DC.
+3. Do the same on the lab router's Unbound.
+4. On the lab router WAN, add the pass from the edge to the DC on TCP/UDP 53, above the Core deny. Without it, `nslookup` through `10.10.10.1` times out even though the DC answers on its own address.
+5. On the lab router, under **DHCP options**, click **+** and set `dns-server[6]` to the DC on LABSRV and LABEP. Leave LABATK alone.
+6. Allow ICMPv4 echo on the DC so the admin PC can ping it.
 
-## ubuntu-01
+## Linux server
 
-- Node: Vega. VM ID 201. Storage **`local-lvm`**
-- 2 vCPU, 4 GB RAM, 32 GB disk
 - NIC on `labsrv`
-- IP `10.30.10.40/24`, gateway `10.30.10.1`, DNS `10.30.10.10` and `10.30.10.1`
-- OS: Ubuntu Server LTS
-- Hostname `ubuntu-01`
-- Stays off domain
-- Start order 10
+- `10.30.10.40/24`, gateway `10.30.10.1`, DNS the DC and `10.30.10.1`
+- Ubuntu Server LTS
 
-Upload the Ubuntu ISO to Vega `local` first. Create a local user during install. I do not join this box to AD.
+Create a local user during the install. I keep this box off the domain so there's at least one Linux host that doesn't depend on AD.
 
-## winclient-01
+## Domain workstation
 
-- Node: Polaris. VM ID 102. Storage `local-zfs`
-- 2 vCPU, 4 GB RAM, 80 GB disk
 - NIC on `labep`
-- IP `10.30.20.20/24`, gateway `10.30.20.1`, DNS `10.30.10.10`
-- OS: Windows 11 Pro. Home cannot join a domain. OVMF, TPM 2.0
-- Disk `scsi0`. Change off VirtIO Block before Setup. Virtio CD on `local`, not `local-zfs`
-- Start order 10
+- `10.30.20.20/24`, gateway `10.30.20.1`, DNS the DC
+- Windows 11 Pro on OVMF with TPM 2.0. Home can't join a domain.
+- Disk on `scsi0`. If you created it as VirtIO Block, change it before Setup.
+- The virtio driver CD on `local`, not on a ZFS ISO store that lives on the other node
 
-Windows 11 OOBE will try to force a Microsoft account. Use **Domain join instead** / `oobe\bypassnro` and create a local account first. Do not join the domain during OOBE.
+Windows 11 OOBE tries hard to force a Microsoft account. Use **Domain join instead** or `oobe\bypassnro` to create a local account first, and don't join the domain during OOBE.
 
-NIC driver from the virtio CD is `NetKVM\w11\amd64`, not the CD root. Allow ICMPv4 echo.
+The NIC driver on the virtio CD is under `NetKVM\w11\amd64`, not at the CD root. Allow ICMPv4 echo once you're in.
 
-Join `lab.gregory-dean.com` as `LAB\Administrator` (domain admin, not DSRM). DSRM will not join. If join fails, check `nltest /dsgetdc` and ports 88 / 389 / 445 before you chase the password.
+Join the lab domain as the domain Administrator. The DSRM password won't work here, which catches a lot of people the first time. If the join fails, check `nltest /dsgetdc` and ports 88, 389, and 445 before you start second guessing the password.
 
-## siem-01
+## SIEM
 
-- Node: Polaris. VM ID 103. Storage `local-zfs`
-- 4 vCPU, 8 GB RAM, 80 GB disk
 - NIC on `labsrv`
-- IP `10.30.10.50/24`, gateway `10.30.10.1`, DNS `10.30.10.10` and `10.30.10.1`
-- OS: Ubuntu Server LTS
-- Hostname `siem-01`
-- Start order 3
+- `10.30.10.50/24`, gateway `10.30.10.1`, DNS the DC and `10.30.10.1`
+- Ubuntu Server LTS
+- More CPU and RAM than the other Linux guests
 
-Install Wazuh indexer, server, and dashboard after the OS is up. I used the current all-in-one install from the Wazuh docs. Bookmark `https://10.30.10.50` on Sol. Accept the self-signed cert for this host only.
+Install the Wazuh indexer, server, and dashboard once the OS is up. I used the current all in one install from the Wazuh documentation. Bookmark the dashboard on the admin PC and accept the self signed certificate for this host only.
 
-Agents and detections are not on this page. The box is installed and reachable.
+Agents and detections aren't covered here. This page gets the box installed and reachable.
 
-## kali-01
+## Attack box
 
-- Node: Vega. VM ID 202. Storage **`local-lvm`**
-- 2 vCPU, 4 GB RAM, 40 GB disk
 - NIC on `labatk`
-- IP `10.30.30.30/24`, gateway `10.30.30.1`, DNS `10.30.30.1`
-- OS: Kali Linux. Use the **installer** ISO, not a live-only image
-- Hostname `kali-01`
-- Stays off domain
-- Start order 10
+- `10.30.30.30/24`, gateway `10.30.30.1`, DNS `10.30.30.1`
+- Kali Linux from the **installer** ISO, not a live image
+- Off the domain
 
-Upload the ISO to Vega `local`. Confirm it can ping `10.30.10.10`. A failed ping to Sol (`10.10.10.154`) is not proof of the gw-01 deny. Sol drops ICMP from every host.
-
-## Resource sanity
-
-Polaris used: gw-01 4 GB, dc-01 4 GB, winclient-01 4 GB, siem-01 8 GB. About 20 GB of 32 GB, plus the host.
-
-Vega used: ubuntu-01 4 GB, kali-01 4 GB. About 8 GB of 32 GB, plus the host.
-
-Disk: Polaris about 272 GB of 512 GB before host overhead. Vega about 72 GB of 250 GB.
+Confirm it can ping the DC. A failed ping to the admin PC doesn't prove the `lab-gw` deny is working, since the admin PC drops ICMP from every host anyway.
 
 ## Checks
 
-From Sol:
+From the admin PC:
 
 ```powershell
 ping 10.30.10.10
@@ -128,11 +109,25 @@ ping 10.30.20.20
 ping 10.30.10.40
 ping 10.30.10.50
 ping 10.30.30.30
-nslookup dc-01.lab.gregory-dean.com 10.10.10.1
+nslookup dc-01.lab.example.com 10.10.10.1
 ```
 
-`nslookup` should return `10.30.10.10`. RDP to winclient-01 as a domain user.
+The `nslookup` should return the DC's address, and you should be able to RDP to the workstation as a domain user.
 
-From kali-01: ping dc-01 works. Do not use ping to Sol as the Core deny check.
+From the attack box, a ping to the DC works. Don't use a ping to the admin PC as your test of the Core deny.
 
-From a phone on Lyra: ping dc-01 fails.
+From a phone on WiFi, a ping to the DC fails.
+
+## If something breaks
+
+Windows Setup never sees a disk. The OS disk is VirtIO Block (`virtio0`). Use SCSI and load `vioscsi`.
+
+Windows 11 OOBE demands a Microsoft account. Create a local account first and join the domain later.
+
+The domain join rejects the password you just set. That was the DSRM password. Use the domain Administrator's.
+
+`nslookup` through the edge times out. The lab router WAN is missing the pass from the edge to the DC on port 53.
+
+The admin PC can't ping a Windows guest. The guest is dropping ICMPv4 echo. It can still reach the DC, and it still works.
+
+Creating a VM fails with `cannot import 'rpool'`. The disk is on a store that node can't see. See [hypervisor](hypervisor.md).
