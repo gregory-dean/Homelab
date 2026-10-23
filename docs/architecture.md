@@ -2,15 +2,9 @@
 
 The lab is a 10 inch rack on my desk with an edge firewall, two Proxmox nodes, and the Windows desktop I manage all of it from. This page explains how those pieces connect and why the network is shaped the way it is.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../images/diagrams/topology-dark.png">
-  <img alt="Homelab topology" src="../images/diagrams/topology-light.png">
-</picture>
+<img alt="Homelab topology" src="../images/diagrams/topology-dark.png">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../images/diagrams/segmentation-dark.png">
-  <img alt="Network segmentation" src="../images/diagrams/segmentation-light.png">
-</picture>
+<img alt="Network segmentation" src="../images/diagrams/segmentation-dark.png">
 
 ## Physical path
 

@@ -4,7 +4,7 @@ Photos and screenshots from the lab as it runs. The PNGs under `diagrams/` are t
 
 | Folder | Contents |
 | ------ | -------- |
-| `diagrams/` | Dark and light PNG exports |
+| `diagrams/` | Dark PNG exports (the rack sheet still has a light copy until it's redrawn) |
 | `rack/` | Photos of the T1 cabinet |
 | `hardware/` | Photos of the hosts, the NIC, and the riser |
 | `proxmox/` | Cluster UI, taken from Sol |
@@ -16,10 +16,10 @@ Photos and screenshots from the lab as it runs. The PNGs under `diagrams/` are t
 
 | File | What it shows |
 | ---- | ------------- |
-| `topology-dark.png` / `topology-light.png` | Physical path, Core hosts, lab overlay |
-| `segmentation-dark.png` / `segmentation-light.png` | Walls, gates, allow and deny |
+| `topology-dark.png` | Physical path, Core hosts, lab overlay |
+| `segmentation-dark.png` | Walls, gates, allow and deny |
 | `rack-dark.png` / `rack-light.png` | Front elevation and port map |
-| `dns-dark.png` / `dns-light.png` | The two DNS zones |
+| `dns-dark.png` | The two DNS zones |
 
 ## Rack
 

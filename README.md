@@ -4,10 +4,7 @@ This is a full guide with detailed documentation of the 10 inch homelab I've bui
 
 I use this for all cybersecurity related projects and some personal projects like self hosting or game servers.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="images/diagrams/topology-dark.png">
-  <img alt="Homelab topology" src="images/diagrams/topology-light.png">
-</picture>
+<img alt="Homelab topology" src="images/diagrams/topology-dark.png">
 
 ![Front](images/rack/01-rack-front.jpg)
 
