@@ -1,6 +1,6 @@
 # Lab layout
 
-Across these guides I use a Core LAN of `10.10.10.0/24` and three lab prefixes: `10.30.10.0/24`, `10.30.20.0/24`, and `10.30.30.0/24`. The hostnames are placeholders too, so use whatever fits your setup. If you want to see what I actually run, the [architecture](../docs/architecture.md), [network](../docs/network.md), and [hardware](../docs/hardware.md) pages have it.
+Across these guides I use a Core LAN of `<core>.0/24` and three lab prefixes: `192.0.2.0/24`, `198.51.100.0/24`, and `203.0.113.0/24`. The hostnames are placeholders too, so use whatever fits your setup. If you want to see what I actually run, the [architecture](../docs/architecture.md), [network](../docs/network.md), and [hardware](../docs/hardware.md) pages have it. `<core>` stands for the first three octets of your Core /24, so `<core>.1` is the edge.
 
 This page covers the shape of the lab. The software installs are in the guides that follow.
 

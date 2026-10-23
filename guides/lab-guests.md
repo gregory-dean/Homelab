@@ -1,6 +1,6 @@
 # Lab guests
 
-Addresses on this page use `10.30.10.0/24` for servers, `10.30.20.0/24` for endpoints, and `10.30.30.0/24` for the attack box. Hostnames like `dc-01` are placeholders. What I actually run is in [network](../docs/network.md).
+Addresses on this page use `192.0.2.0/24` for servers, `198.51.100.0/24` for endpoints, and `203.0.113.0/24` for the attack box. Hostnames like `dc-01` are placeholders. What I actually run is in [network](../docs/network.md). `<core>` stands for the first three octets of your Core /24, so `<core>.1` is the edge.
 
 I build every guest from an ISO rather than importing old disks. It's slower the first time and much easier to reason about afterward.
 
@@ -36,8 +36,8 @@ On Windows guests, set IPv4 in `ncpa.cpl` rather than the Settings app, and allo
 ## Domain controller
 
 - NIC on `labsrv`
-- `10.30.10.10/24`, gateway `10.30.10.1`
-- DNS `10.30.10.1` during install, then itself after AD DS is up
+- `192.0.2.10/24`, gateway `192.0.2.1`
+- DNS `192.0.2.1` during install, then itself after AD DS is up
 - Windows Server on OVMF, with a TPM if the ISO asks for one
 
 Start this one early so everything else can find it.
@@ -50,17 +50,17 @@ Promote it to a domain controller for a dedicated lab zone, for example `lab.exa
 
 After promotion:
 
-1. On the DC, set DNS to itself and add a forwarder to `10.30.10.1`.
+1. On the DC, set DNS to itself and add a forwarder to `192.0.2.1`.
 2. On the edge, add Unbound Query Forwarding for the AD zone → the DC.
 3. Do the same on the lab router's Unbound.
-4. On the lab router WAN, add the pass from the edge to the DC on TCP/UDP 53, above the Core deny. Without it, `nslookup` through `10.10.10.1` times out even though the DC answers on its own address.
+4. On the lab router WAN, add the pass from the edge to the DC on TCP/UDP 53, above the Core deny. Without it, `nslookup` through `<core>.1` times out even though the DC answers on its own address.
 5. On the lab router, under **DHCP options**, click **+** and set `dns-server[6]` to the DC on LABSRV and LABEP. Leave LABATK alone.
 6. Allow ICMPv4 echo on the DC so the admin PC can ping it.
 
 ## Linux server
 
 - NIC on `labsrv`
-- `10.30.10.40/24`, gateway `10.30.10.1`, DNS the DC and `10.30.10.1`
+- `192.0.2.40/24`, gateway `192.0.2.1`, DNS the DC and `192.0.2.1`
 - Ubuntu Server LTS
 
 Create a local user during the install. I keep this box off the domain so there's at least one Linux host that doesn't depend on AD.
@@ -68,7 +68,7 @@ Create a local user during the install. I keep this box off the domain so there'
 ## Domain workstation
 
 - NIC on `labep`
-- `10.30.20.20/24`, gateway `10.30.20.1`, DNS the DC
+- `198.51.100.20/24`, gateway `198.51.100.1`, DNS the DC
 - Windows 11 Pro on OVMF with TPM 2.0. Home can't join a domain.
 - Disk on `scsi0`. If you created it as VirtIO Block, change it before Setup.
 - The virtio driver CD on `local`, not on a ZFS ISO store that lives on the other node
@@ -82,7 +82,7 @@ Join the lab domain as the domain Administrator. The DSRM password won't work he
 ## SIEM
 
 - NIC on `labsrv`
-- `10.30.10.50/24`, gateway `10.30.10.1`, DNS the DC and `10.30.10.1`
+- `192.0.2.50/24`, gateway `192.0.2.1`, DNS the DC and `192.0.2.1`
 - Ubuntu Server LTS
 - More CPU and RAM than the other Linux guests
 
@@ -93,7 +93,7 @@ Agents and detections aren't covered here. This page gets the box installed and 
 ## Attack box
 
 - NIC on `labatk`
-- `10.30.30.30/24`, gateway `10.30.30.1`, DNS `10.30.30.1`
+- `203.0.113.30/24`, gateway `203.0.113.1`, DNS `203.0.113.1`
 - Kali Linux from the **installer** ISO, not a live image
 - Off the domain
 
@@ -104,12 +104,12 @@ Confirm it can ping the DC. A failed ping to the admin PC doesn't prove the `lab
 From the admin PC:
 
 ```powershell
-ping 10.30.10.10
-ping 10.30.20.20
-ping 10.30.10.40
-ping 10.30.10.50
-ping 10.30.30.30
-nslookup dc-01.lab.example.com 10.10.10.1
+ping 192.0.2.10
+ping 198.51.100.20
+ping 192.0.2.40
+ping 192.0.2.50
+ping 203.0.113.30
+nslookup dc-01.lab.example.com <core>.1
 ```
 
 The `nslookup` should return the DC's address, and you should be able to RDP to the workstation as a domain user.

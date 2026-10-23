@@ -15,19 +15,21 @@ The switch in this cabinet is unmanaged, so it can't do VLANs. Everything plugge
 
 ## Hosts
 
+> Addresses in this table are examples (`*.lan` names), not the live lab.
+
 | Name | Device | Role | Address |
 | ---- | ------ | ---- | ------- |
-| Sirius | M720q i5-8400T | OPNsense, physical edge | `10.10.10.1` |
-| Polaris | M720q i5-9500T | Proxmox, primary | `10.10.10.11` |
-| Vega | M715q Ryzen 3 PRO 2200GE | Proxmox, secondary | `10.10.10.12` |
-| Sol | Ryzen 7 5800X desktop | Command center | `10.10.10.154` |
-| Lyra | Archer AX6000 | Access point | `10.10.10.2` |
-| gw-01 | VM on Polaris | OPNsense, lab router | `10.10.10.3` |
-| dc-01 | VM on Polaris | AD DS | `10.30.10.10` |
-| winclient-01 | VM on Polaris | Windows 11 Pro, domain joined | `10.30.20.20` |
-| siem-01 | VM on Polaris | Wazuh | `10.30.10.50` |
-| ubuntu-01 | VM on Vega | Ubuntu Server, off domain | `10.30.10.40` |
-| kali-01 | VM on Vega | Kali, off domain | `10.30.30.30` |
+| Sirius | M720q i5-8400T | OPNsense, physical edge | `sirius.home.lan` |
+| Polaris | M720q i5-9500T | Proxmox, primary | `polaris.home.lan` |
+| Vega | M715q Ryzen 3 PRO 2200GE | Proxmox, secondary | `vega.home.lan` |
+| Sol | Ryzen 7 5800X desktop | Command center | `sol.home.lan` |
+| Lyra | Archer AX6000 | Access point | `lyra.home.lan` |
+| gw-01 | VM on Polaris | OPNsense, lab router | `gw-01.home.lan` |
+| dc-01 | VM on Polaris | AD DS | `dc-01.lab.lan` |
+| winclient-01 | VM on Polaris | Windows 11 Pro, domain joined | `winclient-01.lab.lan` |
+| siem-01 | VM on Polaris | Wazuh | `siem-01.lab.lan` |
+| ubuntu-01 | VM on Vega | Ubuntu Server, off domain | `ubuntu-01.lab.lan` |
+| kali-01 | VM on Vega | Kali, off domain | `kali-01.lab.lan` |
 
 ## Docs
 

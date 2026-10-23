@@ -1,6 +1,6 @@
 # Access point
 
-The management address here is `10.10.10.2` and the hostname is `ap`, both placeholders. Mine is in [network](../docs/network.md).
+The management address here is `<core>.2` and the hostname is `ap`, both placeholders. Mine is in [network](../docs/network.md). `<core>` stands for the first three octets of your Core /24, so `<core>.1` is the edge.
 
 Any home router that has an access point mode will do. It provides house WiFi and nothing else. It's not a second router, and the moment it starts acting like one you'll know, because a phone will show up with a `192.168.0.x` or `192.168.1.x` address. If that ever happens, unplug the AP and fix DHCP before anything else. The edge has to be the only DHCP server on Core.
 
@@ -16,9 +16,9 @@ Do this from the admin PC over Ethernet, not from a phone on WiFi, because the A
 
 ## Give it a fixed address on Core
 
-1. On the edge, under **Services → Dnsmasq DNS & DHCP → Hosts**, add a reservation for the AP at `10.10.10.2`. Keep it outside the `100` to `199` pool, and remember Dnsmasq wants colons in the MAC rather than the dashes Windows prints. The Unbound host override should already exist from the [firewall](firewall.md) guide.
-2. On the AP, set the LAN IPv4 address to static `10.10.10.2`, mask `255.255.255.0`, gateway `10.10.10.1`, DNS `10.10.10.1`. Save it. It'll probably reboot.
-3. When it comes back, `ping -n 4 10.10.10.2` from the admin PC and open `https://10.10.10.2`, or plain HTTP if that firmware only does HTTP.
+1. On the edge, under **Services → Dnsmasq DNS & DHCP → Hosts**, add a reservation for the AP at `<core>.2`. Keep it outside the `100` to `199` pool, and remember Dnsmasq wants colons in the MAC rather than the dashes Windows prints. The Unbound host override should already exist from the [firewall](firewall.md) guide.
+2. On the AP, set the LAN IPv4 address to static `<core>.2`, mask `255.255.255.0`, gateway `<core>.1`, DNS `<core>.1`. Save it. It'll probably reboot.
+3. When it comes back, `ping -n 4 <core>.2` from the admin PC and open `https://<core>.2`, or plain HTTP if that firmware only does HTTP.
 4. If the UI never comes back but phones still have WiFi, the AP took a different address. Check the edge lease table, then set the static address again.
 
 ![The network map on my access point](../images/lyra/01-network-map.jpg)
@@ -41,12 +41,12 @@ There's no guest VLAN on an unmanaged switch, so leave the guest network off.
 
 - The AP answers at its Core address from the admin PC
 - `nslookup` for the AP name returns that address
-- A phone on WiFi gets a `10.10.10.1xx` address with gateway and DNS `10.10.10.1`
+- A phone on WiFi gets a `<core>.1xx` address with gateway and DNS `<core>.1`
 - The internet works on WiFi
-- That phone cannot open the lab router UI at `https://10.10.10.3`
+- That phone cannot open the lab router UI at `https://<core>.3`
 - A phone never gets a `192.168.x.x` address on this SSID
 
-The AP doesn't NAT and it isn't a firewall. Phones on WiFi can reach the internet and the admin PC. They can't reach the lab, but that's because `lab-gw` denies Core (apart from the admin PC) from entering `10.30.0.0/16`, not because of anything the AP does.
+The AP doesn't NAT and it isn't a firewall. Phones on WiFi can reach the internet and the admin PC. They can't reach the lab, but that's because `lab-gw` denies Core (apart from the admin PC) from entering the lab prefixes, not because of anything the AP does.
 
 ## If something breaks
 
