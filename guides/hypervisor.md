@@ -1,10 +1,10 @@
 # Hypervisor
 
-The two nodes here are `pve-1` at `10.10.10.11` and `pve-2` at `10.10.10.12`, both placeholders. What I actually run is in [hardware](../docs/hardware.md) and [network](../docs/network.md).
+The two nodes here are `pve-1` at `<core>.11` and `pve-2` at `<core>.12`, both placeholders. What I actually run is in [hardware](../docs/hardware.md) and [network](../docs/network.md). `<core>` stands for the first three octets of your Core /24, so `<core>.1` is the edge.
 
 The design is two Proxmox nodes in one cluster with one UI, no shared storage, and no HA. One node is enough to start with. The overlay only matters once guests need to live on more than one box.
 
-The edge firewall has to be up before any of this. Both nodes need Core addresses and DNS at `10.10.10.1`.
+The edge firewall has to be up before any of this. Both nodes need Core addresses and DNS at `<core>.1`.
 
 ## Install each node
 
@@ -15,27 +15,27 @@ The edge firewall has to be up before any of this. Both nodes need Core addresse
 5. Set a strong root password. The email field is where Proxmox sends alerts.
 6. For the network, pick the NIC that reaches Core and set:
    - Hostname `pve-1.home.example.com`, using your Core domain
-   - IP `10.10.10.11/24`, or `.12` on the second node
-   - Gateway `10.10.10.1`
-   - DNS `10.10.10.1`
+   - IP `<core>.11/24`, or `.12` on the second node
+   - Gateway `<core>.1`
+   - DNS `<core>.1`
 7. Finish, reboot, and pull the USB.
 
 In the BIOS, enable virtualization (VT-x or AMD-V) and turn Secure Boot off if the installer complains about it.
 
 ## First boot
 
-SSH in from the admin PC with `ssh root@10.10.10.11`, then work through the following.
+SSH in from the admin PC with `ssh root@<core>.11`, then work through the following.
 
 1. Fix the repositories. Disable `pve-enterprise` and enable the no subscription repo. In the UI this is under the node at **Updates → Repositories**. Skip the Ceph repos unless you actually run Ceph.
 2. Run `apt update` and `apt dist-upgrade`, then reboot.
-3. Set the same timezone on every node and point NTP at `10.10.10.1`. Both the cluster and Active Directory care about the clock.
+3. Set the same timezone on every node and point NTP at `<core>.1`. Both the cluster and Active Directory care about the clock.
 4. Confirm `/etc/network/interfaces` has a single bridge:
 
 ```text
 auto vmbr0
 iface vmbr0 inet static
-    address 10.10.10.11/24
-    gateway 10.10.10.1
+    address <core>.11/24
+    gateway <core>.1
     bridge-ports enp1s0
     bridge-stp off
     bridge-fd 0
@@ -45,7 +45,7 @@ The interface name may differ, so check with `ip link`. Don't make `vmbr0` VLAN 
 
 5. Add each node's MAC to its reservation on the edge.
 
-Open `https://10.10.10.11:8006` from the admin PC to confirm the UI loads, then repeat all of this on the second node.
+Open `https://<core>.11:8006` from the admin PC to confirm the UI loads, then repeat all of this on the second node.
 
 ![Summary page for my primary node](../images/proxmox/02-polaris-summary.jpg)
 
@@ -64,10 +64,10 @@ pvecm create homelab
 On `pve-2`:
 
 ```bash
-pvecm add 10.10.10.11
+pvecm add <core>.11
 ```
 
-Check `pvecm status` on either node. Both nodes should now show in one UI at `https://10.10.10.11:8006`.
+Check `pvecm status` on either node. Both nodes should now show in one UI at `https://<core>.11:8006`.
 
 ![My cluster tree](../images/proxmox/01-cluster-tree.jpg)
 
@@ -101,7 +101,7 @@ Order matters here. Create the IPSets and rules before you enable anything, or t
 4. Enable the firewall at the datacenter level, then on each node.
 5. Confirm the UI still loads from the admin PC and that `pvecm status` still shows both votes. If corosync drops, the peer rule is wrong. Fix it before you go further.
 
-After this, a phone on Core should not be able to open `https://10.10.10.11:8006`.
+After this, a phone on Core should not be able to open `https://<core>.11:8006`.
 
 ## SDN overlay
 
@@ -148,7 +148,7 @@ Install OPNsense in the VM the same way you did on the edge, GPT and UFS. Then g
 
 ## How I run it day to day
 
-I work from the admin PC at `https://10.10.10.11:8006`. Every guest gets the QEMU agent, a virtio SCSI disk rather than VirtIO Block or IDE, CPU type host, and MTU 1450 on lab NICs. Windows guests use OVMF and the lab router uses SeaBIOS. Guest firewalls stay off unless I add rules, and the repositories stay on the no subscription list.
+I work from the admin PC at `https://<core>.11:8006`. Every guest gets the QEMU agent, a virtio SCSI disk rather than VirtIO Block or IDE, CPU type host, and MTU 1450 on lab NICs. Windows guests use OVMF and the lab router uses SeaBIOS. Guest firewalls stay off unless I add rules, and the repositories stay on the no subscription list.
 
 ## If something breaks
 

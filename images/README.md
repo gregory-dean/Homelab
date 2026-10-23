@@ -38,7 +38,7 @@ Photos and screenshots from the lab as it runs. The PNGs under `diagrams/` are t
 
 ## Proxmox
 
-Taken from Sol at `https://10.10.10.11:8006`.
+Taken from Sol at `https://polaris.home.lan:8006`.
 
 | File | Page |
 | ---- | ---- |
@@ -52,7 +52,7 @@ Taken from Sol at `https://10.10.10.11:8006`.
 
 ## Sirius
 
-Taken from Sol at `https://10.10.10.1`.
+Taken from Sol at `https://sirius.home.lan`.
 
 | File | Page |
 | ---- | ---- |
@@ -66,7 +66,7 @@ Taken from Sol at `https://10.10.10.1`.
 
 ## gw-01
 
-Taken from Sol at `https://10.10.10.3`. The WAN on this box is Core, not the ISP.
+Taken from Sol at `https://gw-01.home.lan`. The WAN on this box is Core, not the ISP.
 
 | File | Page |
 | ---- | ---- |
@@ -78,8 +78,8 @@ Taken from Sol at `https://10.10.10.3`. The WAN on this box is Core, not the ISP
 
 ## Lyra
 
-Taken from Sol at `https://10.10.10.2`.
+Taken from Sol at `https://lyra.home.lan`.
 
 | File | Page |
 | ---- | ---- |
-| `01-network-map.jpg` | Network Map, static `10.10.10.2` |
+| `01-network-map.jpg` | Network Map, static `lyra.home.lan` |

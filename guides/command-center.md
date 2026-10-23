@@ -1,6 +1,6 @@
 # Command center
 
-The admin PC here is `admin` at `10.10.10.154`, a placeholder. Mine is in [hardware](../docs/hardware.md).
+The admin PC here is `admin` at `<core>.154`, a placeholder. Mine is in [hardware](../docs/hardware.md). `<core>` stands for the first three octets of your Core /24, so `<core>.1` is the edge.
 
 This is the PC I do everything from: a normal desktop on Core that holds the SSH keys, the browser bookmarks, and the ISO library. It isn't a hypervisor for the lab, and I'd keep it that way. When the lab is broken, you want the machine you're fixing it from to be boring.
 
@@ -8,8 +8,8 @@ This is the PC I do everything from: a normal desktop on Core that holds the SSH
 
 Leave the desktop on DHCP and don't set a manual address in the OS. Instead:
 
-1. On the edge, add a Dnsmasq static map for the desktop's Ethernet MAC to `10.10.10.154`. Putting the reservation inside the pool is fine as long as the client stays on DHCP. Dnsmasq wants colons in the MAC, not the dashes Windows prints.
-2. Gateway and DNS come from DHCP as `10.10.10.1`.
+1. On the edge, add a Dnsmasq static map for the desktop's Ethernet MAC to `<core>.154`. Putting the reservation inside the pool is fine as long as the client stays on DHCP. Dnsmasq wants colons in the MAC, not the dashes Windows prints.
+2. Gateway and DNS come from DHCP as `<core>.1`.
 3. Confirm the OS shows that address. If it's still holding an old ISP address, renew the lease.
 
 Windows Firewall drops inbound ICMP by default, so a failed ping to the admin PC from another machine doesn't mean anything is wrong. Prove the admin PC is working by opening the admin UIs and SSH from it.
@@ -27,8 +27,8 @@ Accept the default path under the `.ssh` folder in your profile. If a key alread
 Copy the public key to each hypervisor:
 
 ```powershell
-type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh root@10.10.10.11 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
-type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh root@10.10.10.12 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh root@<core>.11 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh root@<core>.12 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
 ```
 
 Then on both nodes, set `PasswordAuthentication no` in `/etc/ssh/sshd_config` and reload ssh. Keep a console session open until you've confirmed key login works.
@@ -37,11 +37,11 @@ Add the same public key to the edge and to `lab-gw`, then disable password login
 
 ## Browser bookmarks
 
-- Edge: `https://10.10.10.1`
-- Lab router: `https://10.10.10.3`
-- Proxmox cluster: `https://10.10.10.11:8006`
-- Access point: `https://10.10.10.2`
-- SIEM: `https://10.30.10.50`
+- Edge: `https://<core>.1`
+- Lab router: `https://<core>.3`
+- Proxmox cluster: `https://<core>.11:8006`
+- Access point: `https://<core>.2`
+- SIEM: `https://192.0.2.50`
 
 Accept each self signed certificate once for that host. Don't turn certificate warnings off globally to make the nagging stop.
 
