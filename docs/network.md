@@ -2,10 +2,7 @@
 
 This is the address book for the lab: Core and lab addresses, DNS, the NIC assignments on Sirius, routes and NAT, firewall rule order, and the patch map.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../images/diagrams/dns-dark.png">
-  <img alt="DNS flow" src="../images/diagrams/dns-light.png">
-</picture>
+<img alt="DNS flow" src="../images/diagrams/dns-dark.png">
 
 The segmentation view of the same network is in [architecture](architecture.md).
 
